@@ -8,6 +8,8 @@
 
 int i = 3;
 
+//helper functions don't switch global variables!!
+//consider programming most things in here.
 int main(int argc, char *argv[]) {
 	printf("%s\n", test(""));
 	printf("%i\n", i);
