@@ -261,7 +261,7 @@ void processarEventoChegada(){
 void setup(){
 	//geração do número de clientes de minClients-maxClients
 	int numberOfClients=minClients + rand() % (maxClients-minClients);
-	int clientsLeft = numberOfClients; //numero de clientes ainda não atribuidos numa timezone
+	int clientsLeft = numberOfClients;
 	printf("%d # de clientes", numberOfClients);
 	cli=numberOfClients;
 	//clientes por período de tempo
