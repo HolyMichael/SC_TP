@@ -34,7 +34,7 @@ void inserirEventoFim( Evento *nv);
 void inserirEventoOrdem(Evento*nv);
 void imprimeLista();
 void processarEventoChegada();
-void temp();
+void imprimeFilaVendedores();
 void processarEventoSaidaVendedores();
 void makeEventVendedoresSaida(int posto);
 void makeEventPagamentoSaida(int posto);
@@ -43,8 +43,8 @@ void makeEventPagamentoSaida(int posto);
 //Variaveis Globais
 
 //alterar número de clientes aqui
- #define minClients 2850
- #define maxClients 2851
+ #define minClients 300
+ #define maxClients 320
 int cli;
  int probPrioritario = 5;
 
@@ -78,12 +78,14 @@ int main() {
 		eventosprocessados++;
 		switch(tipoEvento){
 			//Chegada Cliente
-			case 0: processarEventoChegada();
-					//temp();
-					break; 
+			case 0: 
+				processarEventoChegada();
+				//imprimeFilaVendedores(); //flush it to file
+				break; 
 			//Fim Zona Vendedores
 			case 1: 
 				processarEventoSaidaVendedores();
+				imprimeFilePagamento(); //flush it to file
 				break;
 			//Fim Zona Pagamento
 			case 2:
@@ -97,13 +99,13 @@ int main() {
 		printf("\nEVENTO: %d\n", tipoEvento);
 		printf("\nNUM_EVENTOS: %d\n", eventosprocessados);
 		printf("\nNUM_CLIENTES: %d\n", cli);
-		//temp();
+		//imprimeFilaVendedores();
 	 evento=evento->nseg;
 	}
 
 	printf("\nCHEGAMOS AO FIM BOIISS  %d\n", eventosprocessados);
 	imprimeLista();
-	temp();
+	imprimeFilaVendedores();
 }
 
 void makeEventPagamentoSaida(int posto){
@@ -134,7 +136,7 @@ void processarEventoSaidaVendedores(){
 	int prob= rand() % 101;
   	
     // Clientes que compram
-	if(prob<2){
+	if(prob<81){
 		for(i=0;i<10;i++){
 		//Ocupar posto, se existir
 			if(pagamentoPostos[i]==NULL){
@@ -392,28 +394,42 @@ void imprimeLista(){
 	printf("\n");
 }
 
-
-void temp(){
-int i,j;
+void imprimeFilePagamento(){
+	int i;
+	printf("Postos: %i | %i | %i | %i\n", (pagamentoPostos[0]!=NULL),(pagamentoPostos[1]!=NULL),
+		(pagamentoPostos[2]!=NULL),(pagamentoPostos[3]!=NULL));
+	printf("Filas :");
+	for(i = 0; i< maxClients ;i++){
+		if(pagamentoFila[i]!=NULL)
+			printf("| 1");
+		else break;
+			
+	}
+}
+void imprimeFilaVendedores(){
+	int i,j;
+	int finish=0;
+	printf("Postos|");
 	for(i=0;i<10;i++){
 		if(vendedoresPostos[i]==NULL)
 				printf("|0|");
 		else
 			printf("|1|");
 	}
-	printf("\n\n");
-	for(i=0;i<10;i++){
-		for(j=0;j<maxClients;j++){
+	printf("\nFILAS |");
+	for(j=0;j<maxClients;j++){
+		for(i=0;i<10;i++){
 			if(vendedoresFila[i][j]==NULL){
 				printf("|0|");
-				break;
-				}
+				finish++;
+			}
 			else
 				printf("|1|");
 		}
-	printf("\n");
+	if(finish<20)
+	printf("\n      |");
+	else return;
 	}	
-	printf("\n\naaaaaaaaaaaaaaaaaaaaaaaa");
 }
 	
 	
