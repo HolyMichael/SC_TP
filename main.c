@@ -152,7 +152,6 @@ void  inserirEventoOrdem( Evento *nv){
     }
 	while(aux!=NULL){
 		if(aux->tempoOcorrencia > nv->tempoOcorrencia){
-			printf("vamos brekar oh maninhee\n");
 			break;
 			
 		}
