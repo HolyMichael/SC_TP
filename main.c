@@ -229,6 +229,7 @@ void processarEventoSaidaLevantamento(){
     	for(i=0;i<maxClients;i++){
     		if(pagamentoFila[i]==NULL && flag == 0){
     			pagamentoFila[i] = levantamentoPostos[posto];
+    			pagamentoFila[i]->tempoComeco = relogio;
     			break;
     		}
     	}
@@ -242,6 +243,8 @@ void processarEventoSaidaLevantamento(){
 	
 	//mover o cliente da fila para o atendimento e fazer o seu evento
 	levantamentoPostos[posto]=levantamentoFila[0];
+	//atualizar variaveis estatisticas
+  	tempos[2][zonaTempoAtual]+=(relogio - levantamentoPostos[posto]->tempoComeco);
 	makeEventLevantamentoSaida(posto);
 	
     for(i=1; i<maxClients/10; i++){
@@ -276,6 +279,7 @@ void processarEventoSaidaVendedores(){
     	for(i=0;i<maxClients;i++){
     		if(pagamentoFila[i]==NULL && flag == 0){
     			pagamentoFila[i] = vendedoresPostos[posto];
+    			pagamentoFila[i]->tempoComeco = relogio;
     			break;
     		}
     	}
@@ -422,6 +426,7 @@ void processarEventoSaidaPagamento(){
     	for(i=0;i<maxClients;i++){
     		if(levantamentoFila[i]==NULL && flag == 0){
     			levantamentoFila[i] = pagamentoPostos[posto];
+    			levantamentoFila[i]->tempoComeco = relogio;
     			break;
     		}
     	}
@@ -436,7 +441,9 @@ void processarEventoSaidaPagamento(){
 	}
 	//mover o primeiro cliente na fila para o posto
 	pagamentoPostos[posto]=pagamentoFila[0];
-	//atualizar estatisticas
+	//atualizar variaveis estatisticas
+  	tempos[1][zonaTempoAtual]+=(relogio - pagamentoPostos[posto]->tempoComeco);
+	
 	//criamos o evento do cliente agora a ser atendido no posto livre.
 	makeEventPagamentoSaida(posto);
 	
