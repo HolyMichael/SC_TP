@@ -9,7 +9,7 @@
 //Estruturas
 typedef struct EVENTO{
 
-int tipo; // ChegadaCliente(0), FimZonaVendedor(1), FimZonaPagamento(2), FimZonaLevantamento(3)
+int tipo; // ChegadaCliente(0), FimZonaVendedor(1), FimZonaPagamento(2), FimZonaLevantamento(3), FimPeriodoContagem(4)
 int tempoOcorrencia;
 int posto;
 struct EVENTO *nseg;
@@ -48,8 +48,8 @@ void imprimeFilaLevantamento();
 //Variaveis Globais
 
 //alterar número de clientes aqui
- #define minClients 300
- #define maxClients 320
+ #define minClients 500
+ #define maxClients 501
 int cli;
 int probPrioritario = 5;
 int retornados=0;
@@ -59,6 +59,10 @@ int percentagem1 = 10; //10-13h
 int percentagem2 = 30; //13-16h
 int percentagem3 = 15; //16-19h
 //  percentagem 4 é o restante para 100
+
+//Variavel estatisticas
+int tempos[3][4] = {0};
+int zonaTempoAtual=-1;
 
 int relogio=0;
 Evento*evento=NULL;
@@ -82,6 +86,7 @@ int main() {
 	int eventospagamento=0;
 	int eventosvendedor=0;
 	int eventoslevantamento=0;
+	int eventospassagem=0;
 	srand(time(NULL));
 	setup();
 	saidavendedores=cli;
@@ -105,6 +110,9 @@ int main() {
 				break;
 			case 3:
 				printf("EVENTO_TIPO: 3 SAIDA LEVANTAMENTO\n");
+				break;
+			case 4:
+				printf("EVENTO_TIPO: 4 PASSAGEM ZONA TEMPORAL\n");
 				break;
 		}
 		printf("NUM_EVENTOS: %d\n", eventosprocessados);
@@ -136,6 +144,13 @@ int main() {
 				imprimeFilaLevantamento();
 				eventoslevantamento++;
 				break;
+			case 4:
+				eventospassagem++;
+				zonaTempoAtual++;
+				break;
+			default:
+				return;
+				break;
 	   }
 	 evento=evento->nseg;
 	}
@@ -150,6 +165,16 @@ int main() {
 	printf("\n Eventos de saida levantamento : %d\n",eventoslevantamento);
 	printf("\n RETORNADOS                    : %d", retornados);
 	printf("\n SAIDAS NOS VENDEDORES         : %d", saidavendedores);
+	printf("\n EVENTOS PASSAGEM              : %d", eventospassagem);
+	printf("\n ESPERAS                       :");
+	printf("\n     | HORARIO | 1      | 2       | 3      | 4");
+	printf("\n Fase|         |        |         |        |  ");
+	printf("\n   1 |         | %d | %d | %d | %d |  ",tempos[0][0]/eventosvendedor,tempos[0][1]/eventosvendedor,
+		tempos[0][2]/eventosvendedor,tempos[0][3]/eventosvendedor);
+	printf("\n   2 |         | %d | %d | %d | %d |  ",tempos[1][0]/eventospagamento,tempos[1][1]/eventospagamento,
+		tempos[1][2]/eventospagamento,tempos[1][3]/eventospagamento);
+	printf("\n   3 |         | %d | %d | %d | %d |  ",tempos[2][0]/eventoslevantamento,tempos[2][1]/eventoslevantamento,
+		tempos[2][2]/eventoslevantamento,tempos[2][3]/eventoslevantamento);
 	imprimeLista();
 }
 
@@ -226,7 +251,7 @@ void processarEventoSaidaVendedores(){
 	int i;
 	int posto=evento->posto;
 	int prob= rand() % 101;
-  	
+	
     // Clientes que compram
 	if(prob<81){
 		saidavendedores--;
@@ -255,7 +280,10 @@ void processarEventoSaidaVendedores(){
 		vendedoresPostos[posto]=NULL;
 		return;
 	}
+	//ir buscar o próximo cliente em fila
 	vendedoresPostos[posto]=vendedoresFila[0][posto];
+	//atualizar variaveis estatisticas
+  	tempos[0][zonaTempoAtual]+=(relogio - vendedoresPostos[posto]->tempoComeco);
 	
     for(i=1; i< maxClients/10; i++){
 		vendedoresFila[i-1][posto]=vendedoresFila[i][posto];
@@ -343,31 +371,24 @@ void processarEventoChegada(){
 			else
 				break;
 		}
-		//printf("\n%d pessoas\n",j);
-		//Escolher o cjto de filas com menos pessoas,mas com # igual
+		//Escolher o conjunto de filas com menos pessoas,mas com # igual
 		if(count<minimoTemp){
-			//printf("\nsim");
 			memset(postos,0,sizeof postos);
-			//printf(" %d o i",i);
 			postos[i][0]=1; // o i[][0] representa se a fila é escolhida(1) ou não (0)
 			postos[i][1]=j; // o i[][1] representa a qtd de pessoas na fila
 			minimoTemp=count;
 		}if(count==minimoTemp){
-			//printf("\nmais ou menos");
 			postos[i][0]=1;
 		}
-		//printf("%d o i",i);
 		count=0;
 	} 
 	
 	
-	//Escolher fila nao prioritaria
+	//Escolher fila nao prioritaria preferencialmente, do conjunto
 	for(i = 0;i<10;i++){
-		//printf("\n%d  %d\n", postos[0][1], postos[0][0]);
 		if(postos[i][0]==1){
-			//printf("\n I=%d ",i);
 			vendedoresFila[i][(postos[i][1])]=&cliente;
-			//printf("\n \n \n %d %d\n \n \n ", i, (postos[i][1]));
+			vendedoresFila[i][(postos[i][1])]->tempoComeco=relogio;
 			break;
 		}
 	}
@@ -409,6 +430,7 @@ void processarEventoSaidaPagamento(){
 	}
 	//mover o primeiro cliente na fila para o posto
 	pagamentoPostos[posto]=pagamentoFila[0];
+	//atualizar estatisticas
 	//criamos o evento do cliente agora a ser atendido no posto livre.
 	makeEventPagamentoSaida(posto);
 	
@@ -442,25 +464,25 @@ void setup(){
 	
 	//gerar os eventos de chegada de clientes
 	int temp;
+	for(temp=1 ; temp < 5; temp++){
+		int tempo = 10800*temp;
+		makeEvent( 4, tempo, -1);
+	}
 	for(temp=0 ; temp < clientesTempo1; temp++){
 		int tempo = rand() % 10800 + 0;
 		makeEvent( 0, tempo, -1);
-		printf("%d, ",tempo);
 	}
 	for(temp=0 ; temp < clientesTempo2; temp++){
 		int tempo = rand() % 10800 + 10800;
 		makeEvent( 0, tempo, -1);
-		printf("%d, ",tempo);
 	}
 	for(temp=0 ; temp < clientesTempo3; temp++){
 		int tempo = rand() % 10800 + 21600;
 		makeEvent( 0, tempo, -1);
-		printf("%d, ",tempo);
 	}
 	for(temp=0 ; temp < clientesTempo4; temp++){
 		int tempo = rand() % 10800 + 43200;
 		makeEvent( 0, tempo, -1);
-		printf("%d, ",tempo);
 	}
 	
 	printf("\n\n\n");
