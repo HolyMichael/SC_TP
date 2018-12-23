@@ -254,7 +254,7 @@ void processarEventoSaidaLevantamento(){
   	tempos[2][zonaTempoAtual]+=(relogio - levantamentoPostos[posto]->tempoComeco);
 	makeEventLevantamentoSaida(posto);
 	
-    for(i=1; i<maxClients/10; i++){
+    for(i=1; i<maxClients; i++){
 		levantamentoFila[i-1]=levantamentoFila[i];
 		if(levantamentoFila[i]==NULL){
 			levantamentoFila[i-1]=NULL;
@@ -302,7 +302,7 @@ void processarEventoSaidaVendedores(){
 	//atualizar variaveis estatisticas
   	tempos[0][zonaTempoAtual]+=(relogio - vendedoresPostos[posto]->tempoComeco);
 	
-    for(i=1; i< maxClients/10; i++){
+    for(i=1; i< maxClients; i++){
 		vendedoresFila[i-1][posto]=vendedoresFila[i][posto];
 		if(vendedoresFila[i][posto]==NULL){
 			vendedoresFila[i-1][posto]=NULL;
@@ -470,6 +470,10 @@ void setup(){
 	int clientsLeft = numberOfClients;
 	printf("%d # de clientes", numberOfClients);
 	cli=numberOfClients;
+	if(percentagem1+percentagem2+percentagem3 >100){
+		printf("\nPercentagens invalidas");
+		return;
+	}
 	//clientes por período de tempo
 	int clientesTempo1 = numberOfClients*((float)percentagem1/(float)100.0); //10-13h
 	clientesZonaTempo[0]= clientesTempo1;
