@@ -161,27 +161,34 @@ int main() {
 	imprimeFilaPagamento();
 	imprimeFilaLevantamento();
 	printf("\n\n %d clientes, e %d eventos processados\n", cli, eventosprocessados);
-	printf("\n Eventos de chegada            : %d",eventoschegada);
-	printf("\n Eventos de saida vendedores   : %d",eventosvendedor);
-	printf("\n Eventos de saida pagamento    : %d",eventospagamento);
-	printf("\n Eventos de saida levantamento : %d\n",eventoslevantamento);
-	printf("\n RETORNADOS                    : %d", retornados);
-	printf("\n SAIDAS NOS VENDEDORES         : %d", saidavendedores);
-	printf("\n EVENTOS PASSAGEM              : %d\n", eventospassagem);
+	printf("\nEventos de chegada            : %d",eventoschegada);
+	printf("\nEventos de saida vendedores   : %d",eventosvendedor);
+	printf("\nEventos de saida pagamento    : %d",eventospagamento);
+	printf("\nEventos de saida levantamento : %d\n",eventoslevantamento);
+	printf("\nRETORNADOS                    : %d", retornados);
+	printf("\nSAIDAS NOS VENDEDORES         : %d", saidavendedores);
+	printf("\nEVENTOS PASSAGEM              : %d\n", eventospassagem);
 	int i;
 	for(i=0;i<4;i++){
 		printf("CLIENTES ZONA TEMPORAL %d    : %d\n",i+1,clientesZonaTempo[i]);
 	}
 	printf("\n ESPERAS                       :");
-	printf("\n     | HORARIO | 1      | 2       | 3      | 4");
-	printf("\n Fase|         |        |         |        |  ");
-	printf("\n   1 |         | %d | %d | %d | %d |  ",tempos[0][0]/eventosvendedor,tempos[0][1]/eventosvendedor,
-		tempos[0][2]/eventosvendedor,tempos[0][3]/eventosvendedor);
-	printf("\n   2 |         | %d | %d | %d | %d |  ",tempos[1][0]/eventospagamento,tempos[1][1]/eventospagamento,
-		tempos[1][2]/eventospagamento,tempos[1][3]/eventospagamento);
-	printf("\n   3 |         | %d | %d | %d | %d |  ",tempos[2][0]/eventoslevantamento,tempos[2][1]/eventoslevantamento,
-		tempos[2][2]/eventoslevantamento,tempos[2][3]/eventoslevantamento);
-	imprimeLista();
+	printf("\n10h-13h:");
+	printf("\nFASE DE VENDEDORES             : %d",tempos[0][0]/clientesZonaTempo[0]);
+	printf("\nFASE DE PAGAMENTO              : %d",tempos[1][0]/clientesZonaTempo[0]);
+	printf("\nFASE DE LEVANTAMENTO           : %d",tempos[2][0]/clientesZonaTempo[0]);
+	printf("\n13h-16h:");
+	printf("\nFASE DE VENDEDORES             : %d",tempos[0][1]/clientesZonaTempo[1]);
+	printf("\nFASE DE PAGAMENTO              : %d",tempos[1][1]/clientesZonaTempo[1]);
+	printf("\nFASE DE LEVANTAMENTO           : %d",tempos[2][1]/clientesZonaTempo[1]);
+	printf("\n16h-19h:");
+	printf("\nFASE DE VENDEDORES             : %d",tempos[0][2]/clientesZonaTempo[2]);
+	printf("\nFASE DE PAGAMENTO              : %d",tempos[1][2]/clientesZonaTempo[2]);
+	printf("\nFASE DE LEVANTAMENTO           : %d",tempos[2][2]/clientesZonaTempo[2]);
+	printf("\n19h-22h:");
+	printf("\nFASE DE VENDEDORES             : %d",tempos[0][3]/clientesZonaTempo[3]);
+	printf("\nFASE DE PAGAMENTO              : %d",tempos[1][3]/clientesZonaTempo[3]);
+	printf("\nFASE DE LEVANTAMENTO           : %d",tempos[2][3]/clientesZonaTempo[3]);
 }
 
 void makeEventPagamentoSaida(int posto){
