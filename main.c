@@ -35,7 +35,7 @@ void inserirEventoOrdem(Evento*nv);
 void processarEventoChegada();
 void processarEventoSaidaVendedores();
 void processarEventoSaidaPagamento();
-void processarEventoLevantamentoPagamento();
+void processarEventoSaidaLevantamento();
 void makeEventVendedoresSaida(int posto);
 void makeEventPagamentoSaida(int posto);
 void makeEventLevantamentoSaida(int posto);
@@ -62,7 +62,8 @@ int percentagem3 = 15; //16-19h
 
 //Variavel estatisticas
 int tempos[3][4] = {0};
-int zonaTempoAtual=-1;
+int zonaTempoAtual= 0;
+int clientesZonaTempo[4];
 
 int relogio=0;
 Evento*evento=NULL;
@@ -147,6 +148,7 @@ int main() {
 			case 4:
 				eventospassagem++;
 				zonaTempoAtual++;
+				printf("ESTAMOS AGORA NA ZONA %d", zonaTempoAtual);
 				break;
 			default:
 				return;
@@ -165,7 +167,11 @@ int main() {
 	printf("\n Eventos de saida levantamento : %d\n",eventoslevantamento);
 	printf("\n RETORNADOS                    : %d", retornados);
 	printf("\n SAIDAS NOS VENDEDORES         : %d", saidavendedores);
-	printf("\n EVENTOS PASSAGEM              : %d", eventospassagem);
+	printf("\n EVENTOS PASSAGEM              : %d\n", eventospassagem);
+	int i;
+	for(i=0;i<4;i++){
+		printf("CLIENTES ZONA TEMPORAL %d    : %d\n",i+1,clientesZonaTempo[i]);
+	}
 	printf("\n ESPERAS                       :");
 	printf("\n     | HORARIO | 1      | 2       | 3      | 4");
 	printf("\n Fase|         |        |         |        |  ");
@@ -452,21 +458,26 @@ void setup(){
 	cli=numberOfClients;
 	//clientes por período de tempo
 	int clientesTempo1 = numberOfClients*((float)percentagem1/(float)100.0); //10-13h
+	clientesZonaTempo[0]= clientesTempo1;
 	clientsLeft-= clientesTempo1;
 	int clientesTempo2 = numberOfClients*((float)percentagem2/(float)100.0); //13-16h
 	clientsLeft-= clientesTempo2;
+	clientesZonaTempo[1]= clientesTempo2;
 	int clientesTempo3 = numberOfClients*((float)percentagem3/(float)100.0); //16-19h
 	clientsLeft-= clientesTempo3;
+	clientesZonaTempo[2]= clientesTempo3;
  	int clientesTempo4 = clientsLeft;                  						 //19-22h
+ 	clientesZonaTempo[3]= clientesTempo4;
  	
  	printf("\n%d , %d , %d , %d total: %d\n", clientesTempo1, clientesTempo2, clientesTempo3, clientesTempo4,
 	  clientesTempo1+clientesTempo2+clientesTempo3+clientesTempo4);
 	
 	//gerar os eventos de chegada de clientes
 	int temp;
-	for(temp=1 ; temp < 5; temp++){
+	for(temp=1 ; temp < 4; temp++){
 		int tempo = 10800*temp;
 		makeEvent( 4, tempo, -1);
+		printf("%d", temp);
 	}
 	for(temp=0 ; temp < clientesTempo1; temp++){
 		int tempo = rand() % 10800 + 0;
