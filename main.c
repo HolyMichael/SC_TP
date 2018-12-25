@@ -23,7 +23,7 @@ typedef struct Cliente{
 int prioridade; //Prioridade: geral(0),retomado(1), prioritario(2)
 int tempoComeco;//Tempo em que o cliente chega ao sistema 
 
-};
+}Cliente;
 
 
 //Funções
@@ -48,8 +48,8 @@ void imprimeFilaLevantamento();
 //Variaveis Globais
 
 //alterar número de clientes aqui
- #define minClients 700
- #define maxClients 701
+ #define minClients 300
+ #define maxClients 320
 int cli;
 int probPrioritario = 5;
 int retornados=0;
@@ -64,6 +64,7 @@ int percentagem3 = 15; //16-19h
 int tempos[3][4] = {0};
 int zonaTempoAtual= 0;
 int clientesZonaTempo[4];
+int clientescolocadosprioridade=0;
 
 int relogio=0;
 Evento*evento=NULL;
@@ -173,6 +174,8 @@ int main() {
 	for(i=0;i<4;i++){
 		printf("CLIENTES ZONA TEMPORAL %d    : %d\n",i+1,clientesZonaTempo[i]);
 	}
+	
+	printf("\nCLIENTES COLOCADOS POR PRIORIDADE: %d",clientescolocadosprioridade);
 	printf("\n ESPERAS                       :");
 	printf("\n10h-13h:");
 	printf("\nFASE DE VENDEDORES             : %d",tempos[0][0]/clientesZonaTempo[0]);
@@ -244,27 +247,30 @@ void processarEventoSaidaLevantamento(){
 	}
 
 	// Limpeza de filas e postos. Quem nao compra vai embora.
+	int flag=0;
 	if(levantamentoFila[0]==NULL){
 		levantamentoPostos[posto]=NULL;
-		return;
+		flag=1;
 	}
 	
-	//mover o cliente da fila para o atendimento e fazer o seu evento
-	levantamentoPostos[posto]=levantamentoFila[0];
-	makeEventLevantamentoSaida(posto);
-	//atualizar variaveis estatisticas
-	if(levantamentoPostos[posto]->tempoComeco!=0){
-  		tempos[2][zonaTempoAtual]+=(relogio - levantamentoPostos[posto]->tempoComeco);
-  		levantamentoPostos[posto]->tempoComeco=0;	
-  	}
-
+	if(flag==0){
+		//mover o cliente da fila para o atendimento e fazer o seu evento
+		levantamentoPostos[posto]=levantamentoFila[0];
+		makeEventLevantamentoSaida(posto);
+		//atualizar variaveis estatisticas
+		if(levantamentoPostos[posto]->tempoComeco!=0){
+	  		tempos[2][zonaTempoAtual]+=(relogio - levantamentoPostos[posto]->tempoComeco);
+	  		levantamentoPostos[posto]->tempoComeco=0;	
+	  	}
 	
-    for(i=1; i<maxClients; i++){
-		levantamentoFila[i-1]=levantamentoFila[i];
-		if(levantamentoFila[i]==NULL){
-			levantamentoFila[i-1]=NULL;
-			break;
-		}	
+		
+	    for(i=1; i<maxClients; i++){
+			levantamentoFila[i-1]=levantamentoFila[i];
+			if(levantamentoFila[i]==NULL){
+				levantamentoFila[i-1]=NULL;
+				break;
+			}	
+		}
 	}
 }
 
@@ -290,8 +296,9 @@ void processarEventoSaidaVendedores(){
     	int i;
     	for(i=0;i<maxClients;i++){
     		if(pagamentoFila[i]==NULL && flag == 0){
+    			//inicializar o novo tempo
+    			vendedoresPostos[posto]->tempoComeco=relogio;
     			pagamentoFila[i] = vendedoresPostos[posto];
-    			pagamentoFila[i]->tempoComeco = relogio;
     			break;
     		}
     	}
@@ -299,17 +306,17 @@ void processarEventoSaidaVendedores(){
   	
 	// Postos ocupados, colocacao de cliente em fila.
 	int flag=0;
-	printf("\n%d , %p %d\n",posto, vendedoresFila[0][posto], vendedoresFila[0][posto]==NULL);
+	printf("Caso Cliente:");
 	if(vendedoresFila[0][posto]==NULL){
 		printf("\nnao ha ninguem na fila\n");
 		vendedoresPostos[posto]=NULL;
 		flag=1;
 	}
-	//ir buscar o próximo cliente em fila
-	vendedoresPostos[posto]=vendedoresFila[0][posto];
 	
 	//atualizar variaveis estatisticas
 	if(flag==0){
+	    //ir buscar o próximo cliente em fila
+	    vendedoresPostos[posto]=vendedoresFila[0][posto];
 		if(vendedoresPostos[posto]->tempoComeco!=0){
 	  		tempos[0][zonaTempoAtual]+=(relogio - vendedoresPostos[posto]->tempoComeco);
 	  		vendedoresPostos[posto]->tempoComeco=0;
@@ -372,15 +379,14 @@ void makeEventLevantamentoSaida(int posto){
 
 void processarEventoChegada(){
 	int i=0,j=0;
-	struct Cliente cliente;
-	struct Cliente *ptr = &cliente;
+	struct Cliente *cliente=(struct Cliente*) malloc(1*sizeof(struct Cliente));
     //Gerar numero clientes prioritarios
-
+	cliente->tempoComeco=0;
 	if(rand() % + 101 < (probPrioritario+1)){
-		cliente.prioridade=2;
+		cliente->prioridade=2;
 	}
 	else
-		cliente.prioridade=0;
+		cliente->prioridade=0;
 
 	//2 filas prioritarias:8 e 9. Clientes gerais: Escolher onde ha menos gente. Se iguais, nao prioritaria.
 	for(i=0;i<10;i++){
@@ -388,39 +394,76 @@ void processarEventoChegada(){
 		if(vendedoresPostos[i]==NULL){
 			printf("\n CLIENTE COLOCADO NO POSTO %d",i);
 			makeEventVendedoresSaida(i);
-			vendedoresPostos[i] = &cliente;
+			vendedoresPostos[i] = cliente;
 			return;
 		}
     }
 
-	//Qdo os postos estao cheios, colocar o cliente na fila otima (Escolher onde ha menos gente. Se iguais, nao prioritaria.)	
 	printf("\nA COLOCAR CLIENTE EM FILA");
-	int filas[10]={0};
-	for(i=0;i<10;i++){
-		for(j=0;j<maxClients;j++){
-			if(vendedoresFila[j][i]==NULL){
-				filas[i]=j;
-				printf("|%d",filas[i]);
-				break;
+	//Qdo os postos estao cheios, colocar o cliente na fila otima	
+	//caso cliente prioritario
+	if(cliente->prioridade==2){ //Escolher a fila prioritaria com menos pessoas prioritarias em fila
+		printf("\nCliente colocado por prioridade");
+		int filasprioridade[2]={0}; //# de clientes prioritarios nas filas prioritarias
+		for(i=8;i<10;i++){
+			for(j=0;j<maxClients;j++){
+				if(vendedoresFila[j][i]==NULL || vendedoresFila[j][i]->prioridade==0){
+					filasprioridade[i]=j;
+					printf("|%d",filasprioridade[i]);
+					break;
+				}
 			}
 		}
+		int filaMin;
+		int fila;
+		if(filasprioridade[8]<filasprioridade[9]){
+			filaMin=filasprioridade[8];
+			fila=8;
+		}
+		else{
+			filaMin=filasprioridade[9];
+			fila=9;
+		}
+		//mover os clientes na fila para trás
+		for(j=maxClients;j>filaMin;j--){
+			if(vendedoresFila[j][i]==NULL){
+				continue;
+			}
+			vendedoresFila[j+1][i]=vendedoresFila[j][i];
+		}
+		cliente->tempoComeco=relogio;
+		vendedoresFila[filaMin][i]=cliente;
+		clientescolocadosprioridade++;
 	}
-	
-	int filaMin=maxClients;
-	for(i=0;i<10;i++){
-		if(filas[i]<filaMin)
-			filaMin=filas[i];
-	}
-	printf("\n FILA MINIMA=%d",filaMin);
-	
-	//Escolher fila nao prioritaria preferencialmente
-	for(i = 0;i<10;i++){
-		if(filas[i]==filaMin){
-			cliente.tempoComeco=relogio;
-			vendedoresFila[filaMin][i]=ptr;
-			printf("\n FILA ESCOLHIDA = %d",i);
-			printf("\nCLIENTE GERADO PRIORIDADE: %d     TEMPOCOMECO: %d",vendedoresFila[filaMin][i]->prioridade,vendedoresFila[filaMin][i]->tempoComeco);
-			break;
+	//caso cliente nao prioritario
+	else{ //escolher a fila com menos pessoas em fila e entre as que teem menos pessoas escolher fila nao prioritaria
+		int filas[10]={0};
+		for(i=0;i<10;i++){
+			for(j=0;j<maxClients;j++){
+				if(vendedoresFila[j][i]==NULL){
+					filas[i]=j;
+					printf("|%d",filas[i]);
+					break;
+				}
+			}
+		}
+		
+		int filaMin=maxClients;
+		for(i=0;i<10;i++){
+			if(filas[i]<filaMin)
+				filaMin=filas[i];
+		}
+		printf("\n FILA MINIMA=%d",filaMin);
+		
+		//Escolher fila nao prioritaria preferencialmente
+		for(i = 0;i<10;i++){
+			if(filas[i]==filaMin){
+				cliente->tempoComeco=relogio;
+				vendedoresFila[filaMin][i]=cliente;
+				printf("\n FILA ESCOLHIDA = %d",i);
+				printf("\nCLIENTE GERADO PRIORIDADE: %d     TEMPOCOMECO: %d",vendedoresFila[filaMin][i]->prioridade,vendedoresFila[filaMin][i]->tempoComeco);
+				break;
+			}
 		}
 	}
 }
@@ -456,28 +499,31 @@ void processarEventoSaidaPagamento(){
 	
 	// Limpeza de filas e postos. Quem nao compra vai embora.
 	//Fila de pagamento vazia
+	int flag=0;
 	if(pagamentoFila[0]==NULL){
 		pagamentoPostos[posto]=NULL;
-		return;
+		flag=1;
 	}
-	//mover o primeiro cliente na fila para o posto
-	pagamentoPostos[posto]=pagamentoFila[0];
-	//atualizar variaveis estatisticas
-	if(pagamentoPostos[posto]->tempoComeco!=0){
-  		tempos[1][zonaTempoAtual]+=(relogio - pagamentoPostos[posto]->tempoComeco);
-  		pagamentoPostos[posto]->tempoComeco=0;	
-  	}
-	
-	//criamos o evento do cliente agora a ser atendido no posto livre.
-	makeEventPagamentoSaida(posto);
-	
-	//mover toda a fila 1 para a frente
-    for(i=1; i< maxClients; i++){
-		pagamentoFila[i-1]= pagamentoFila[i];
-		if(pagamentoFila[i]==NULL){
-			pagamentoFila[i-1]=NULL; //fazemos null a ultima posição pois trata-se de um cliente duplicado
-			break;
-		}	
+	if(flag==0){
+		//mover o primeiro cliente na fila para o posto
+		pagamentoPostos[posto]=pagamentoFila[0];
+		//atualizar variaveis estatisticas
+		if(pagamentoPostos[posto]->tempoComeco!=0){
+	  		tempos[1][zonaTempoAtual]+=(relogio - pagamentoPostos[posto]->tempoComeco);
+	  		pagamentoPostos[posto]->tempoComeco=0;	
+	  	}
+		
+		//criamos o evento do cliente agora a ser atendido no posto livre.
+		makeEventPagamentoSaida(posto);
+		
+		//mover toda a fila 1 para a frente
+	    for(i=1; i< maxClients; i++){
+			pagamentoFila[i-1]= pagamentoFila[i];
+			if(pagamentoFila[i]==NULL){
+				pagamentoFila[i-1]=NULL; //fazemos null a ultima posição pois trata-se de um cliente duplicado
+				break;
+			}	
+		}
 	}
 }
 
@@ -662,8 +708,12 @@ void imprimeFilaVendedores(){
 	for(i=0;i<10;i++){
 		if(vendedoresPostos[i]==NULL)
 			printf("|0|");
-		else
-			printf("|1|");
+		else{
+			if(vendedoresPostos[i]->prioridade==0)
+				printf("|G|");
+			if(vendedoresPostos[i]->prioridade==2)
+				printf("|P|");
+		}
 	}
 	printf("\nFILAS |");
 	for(j=0;j<maxClients;j++){
@@ -672,13 +722,17 @@ void imprimeFilaVendedores(){
 				printf("|0|");
 				finish++;
 			}
-			else
-				printf("|1|");
+			else{
+			if(vendedoresPostos[i]->prioridade==0)
+				printf("|G|");
+			if(vendedoresPostos[i]->prioridade==2)
+				printf("|P|");
+			}
 		}
-	if(finish<20)
-	printf("\n      |");
-	else return;
-	}	
+		if(finish<20)
+		printf("\n      |");
+		else return;
+	}
 	printf("\n");
 }
 	
