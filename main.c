@@ -407,9 +407,9 @@ void processarEventoChegada(){
 	if(cliente->prioridade==2){ //Escolher a fila prioritaria com menos pessoas prioritarias em fila
 		printf("\nCliente colocado por prioridade");
 		int filasprioridade[2]={0}; //# de clientes prioritarios nas filas prioritarias
-		for(i=8;i<10;i++){
+		for(i=0;i<2;i++){
 			for(j=0;j<maxClients;j++){
-				if(vendedoresFila[j][i]==NULL || vendedoresFila[j][i]->prioridade==0){
+				if(vendedoresFila[j][i+8]==NULL || vendedoresFila[j][i+8]->prioridade==0){
 					filasprioridade[i]=j;
 					printf("|%d",filasprioridade[i]);
 					break;
@@ -418,12 +418,12 @@ void processarEventoChegada(){
 		}
 		int filaMin;
 		int fila;
-		if(filasprioridade[8]<filasprioridade[9]){
-			filaMin=filasprioridade[8];
+		if(filasprioridade[0]<filasprioridade[1]){
+			filaMin=filasprioridade[0];
 			fila=8;
 		}
 		else{
-			filaMin=filasprioridade[9];
+			filaMin=filasprioridade[1];
 			fila=9;
 		}
 		//mover os clientes na fila para trás
