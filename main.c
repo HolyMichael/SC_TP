@@ -51,13 +51,13 @@ void imprimeFilaLevantamento();
  #define minClients 300
  #define maxClients 320
 int cli;
-int probPrioritario = 5;
+int probPrioritario = 50;
 int retornados=0;
 int saidavendedores=0;
 //percentagem de clients por hora (Entrada de Clientes)
-int percentagem1 = 10; //10-13h
-int percentagem2 = 30; //13-16h
-int percentagem3 = 15; //16-19h
+int percentagem1 = 100; //10-13h
+int percentagem2 = 0; //13-16h
+int percentagem3 = 0; //16-19h
 //  percentagem 4 é o restante para 100
 
 //Variavel estatisticas
@@ -379,15 +379,17 @@ void makeEventLevantamentoSaida(int posto){
 
 void processarEventoChegada(){
 	int i=0,j=0;
-	struct Cliente *cliente=(struct Cliente*) malloc(1*sizeof(struct Cliente));
+	Cliente *cliente=(Cliente*) malloc(1*sizeof(Cliente));
     //Gerar numero clientes prioritarios
 	cliente->tempoComeco=0;
 	if(rand() % + 101 < (probPrioritario+1)){
 		cliente->prioridade=2;
+		printf("\n CLIENTE PRIORITARIO");
 	}
-	else
+	else{
 		cliente->prioridade=0;
-
+		printf("\n CLIENTE NAO PRIORITARIO");
+	}
 	//2 filas prioritarias:8 e 9. Clientes gerais: Escolher onde ha menos gente. Se iguais, nao prioritaria.
 	for(i=0;i<10;i++){
 		//Ocupar posto, se existir
@@ -429,14 +431,15 @@ void processarEventoChegada(){
 			if(vendedoresFila[j][i]==NULL){
 				continue;
 			}
-			vendedoresFila[j+1][i]=vendedoresFila[j][i];
+			vendedoresFila[j+1][fila]=vendedoresFila[j][fila];
 		}
 		cliente->tempoComeco=relogio;
-		vendedoresFila[filaMin][i]=cliente;
+		vendedoresFila[filaMin][fila]=cliente;
 		clientescolocadosprioridade++;
 	}
 	//caso cliente nao prioritario
 	else{ //escolher a fila com menos pessoas em fila e entre as que teem menos pessoas escolher fila nao prioritaria
+		printf("\nCLIENTE NAO PRIORITARIO");
 		int filas[10]={0};
 		for(i=0;i<10;i++){
 			for(j=0;j<maxClients;j++){
