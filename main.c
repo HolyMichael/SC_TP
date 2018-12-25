@@ -23,7 +23,7 @@ typedef struct Cliente{
 int prioridade; //Prioridade: geral(0),retomado(1), prioritario(2)
 int tempoComeco;//Tempo em que o cliente chega ao sistema 
 
-}Cliente;
+};
 
 
 //Funções
@@ -48,8 +48,8 @@ void imprimeFilaLevantamento();
 //Variaveis Globais
 
 //alterar número de clientes aqui
- #define minClients 500
- #define maxClients 501
+ #define minClients 700
+ #define maxClients 701
 int cli;
 int probPrioritario = 5;
 int retornados=0;
@@ -104,7 +104,8 @@ int main() {
 				printf("EVENTO_TIPO: 0 CHEGADA CLIENTE\n");
 				break;
 			case 1:
-				printf("EVENTO_TIPO: 1 SAIDA VENDEDORES\n");
+				printf("EVENTO_TIPO: 1 SAIDA VENDEDORES");
+				printf(" %d \n",evento->posto);
 				break;
 			case 2:
 				printf("EVENTO_TIPO: 2 SAIDA PAGAMENTO\n");
@@ -250,9 +251,13 @@ void processarEventoSaidaLevantamento(){
 	
 	//mover o cliente da fila para o atendimento e fazer o seu evento
 	levantamentoPostos[posto]=levantamentoFila[0];
-	//atualizar variaveis estatisticas
-  	tempos[2][zonaTempoAtual]+=(relogio - levantamentoPostos[posto]->tempoComeco);
 	makeEventLevantamentoSaida(posto);
+	//atualizar variaveis estatisticas
+	if(levantamentoPostos[posto]->tempoComeco!=0){
+  		tempos[2][zonaTempoAtual]+=(relogio - levantamentoPostos[posto]->tempoComeco);
+  		levantamentoPostos[posto]->tempoComeco=0;	
+  	}
+
 	
     for(i=1; i<maxClients; i++){
 		levantamentoFila[i-1]=levantamentoFila[i];
@@ -291,26 +296,35 @@ void processarEventoSaidaVendedores(){
     		}
     	}
 	}
-
-	// Limpeza de filas e postos. Quem nao compra vai embora.
+  	
+	// Postos ocupados, colocacao de cliente em fila.
+	int flag=0;
+	printf("\n%d , %p %d\n",posto, vendedoresFila[0][posto], vendedoresFila[0][posto]==NULL);
 	if(vendedoresFila[0][posto]==NULL){
+		printf("\nnao ha ninguem na fila\n");
 		vendedoresPostos[posto]=NULL;
-		return;
+		flag=1;
 	}
 	//ir buscar o próximo cliente em fila
 	vendedoresPostos[posto]=vendedoresFila[0][posto];
-	//atualizar variaveis estatisticas
-  	tempos[0][zonaTempoAtual]+=(relogio - vendedoresPostos[posto]->tempoComeco);
 	
-    for(i=1; i< maxClients; i++){
-		vendedoresFila[i-1][posto]=vendedoresFila[i][posto];
-		if(vendedoresFila[i][posto]==NULL){
-			vendedoresFila[i-1][posto]=NULL;
-			break;
-		}	
+	//atualizar variaveis estatisticas
+	if(flag==0){
+		if(vendedoresPostos[posto]->tempoComeco!=0){
+	  		tempos[0][zonaTempoAtual]+=(relogio - vendedoresPostos[posto]->tempoComeco);
+	  		vendedoresPostos[posto]->tempoComeco=0;
+	  	}
+	  		
+	    for(i=1; i< maxClients; i++){
+			vendedoresFila[i-1][posto]=vendedoresFila[i][posto];
+			if(vendedoresFila[i][posto]==NULL){
+				vendedoresFila[i-1][posto]=NULL;
+				break;
+			}	
+		}
+		//criamos o evento do cliente agora a ser atendido no posto livre.
+		makeEventVendedoresSaida(posto);
 	}
-	//criamos o evento do cliente agora a ser atendido no posto livre.
-	makeEventVendedoresSaida(posto);
 }
 
 
@@ -358,7 +372,8 @@ void makeEventLevantamentoSaida(int posto){
 
 void processarEventoChegada(){
 	int i=0,j=0;
-	Cliente cliente;
+	struct Cliente cliente;
+	struct Cliente *ptr = &cliente;
     //Gerar numero clientes prioritarios
 
 	if(rand() % + 101 < (probPrioritario+1)){
@@ -371,41 +386,40 @@ void processarEventoChegada(){
 	for(i=0;i<10;i++){
 		//Ocupar posto, se existir
 		if(vendedoresPostos[i]==NULL){
+			printf("\n CLIENTE COLOCADO NO POSTO %d",i);
 			makeEventVendedoresSaida(i);
 			vendedoresPostos[i] = &cliente;
 			return;
 		}
     }
 
-	//Qdo os postos estao cheios, colocar o cliente na fila otima (Escolher onde ha menos gente. Se iguais, nao prioritaria.)		
-	int postos[10][2]= {0};
-	int minimoTemp=maxClients, count = 0;
-	//Quantas pessoas estão em cada fila
+	//Qdo os postos estao cheios, colocar o cliente na fila otima (Escolher onde ha menos gente. Se iguais, nao prioritaria.)	
+	printf("\nA COLOCAR CLIENTE EM FILA");
+	int filas[10]={0};
 	for(i=0;i<10;i++){
 		for(j=0;j<maxClients;j++){
-			if(vendedoresFila[i][j]!=NULL)
-				count++;
-			else
+			if(vendedoresFila[j][i]==NULL){
+				filas[i]=j;
+				printf("|%d",filas[i]);
 				break;
+			}
 		}
-		//Escolher o conjunto de filas com menos pessoas,mas com # igual
-		if(count<minimoTemp){
-			memset(postos,0,sizeof postos);
-			postos[i][0]=1; // o i[][0] representa se a fila é escolhida(1) ou não (0)
-			postos[i][1]=j; // o i[][1] representa a qtd de pessoas na fila
-			minimoTemp=count;
-		}if(count==minimoTemp){
-			postos[i][0]=1;
-		}
-		count=0;
-	} 
+	}
 	
+	int filaMin=maxClients;
+	for(i=0;i<10;i++){
+		if(filas[i]<filaMin)
+			filaMin=filas[i];
+	}
+	printf("\n FILA MINIMA=%d",filaMin);
 	
-	//Escolher fila nao prioritaria preferencialmente, do conjunto
+	//Escolher fila nao prioritaria preferencialmente
 	for(i = 0;i<10;i++){
-		if(postos[i][0]==1){
-			vendedoresFila[i][(postos[i][1])]=&cliente;
-			vendedoresFila[i][(postos[i][1])]->tempoComeco=relogio;
+		if(filas[i]==filaMin){
+			cliente.tempoComeco=relogio;
+			vendedoresFila[filaMin][i]=ptr;
+			printf("\n FILA ESCOLHIDA = %d",i);
+			printf("\nCLIENTE GERADO PRIORIDADE: %d     TEMPOCOMECO: %d",vendedoresFila[filaMin][i]->prioridade,vendedoresFila[filaMin][i]->tempoComeco);
 			break;
 		}
 	}
@@ -449,7 +463,10 @@ void processarEventoSaidaPagamento(){
 	//mover o primeiro cliente na fila para o posto
 	pagamentoPostos[posto]=pagamentoFila[0];
 	//atualizar variaveis estatisticas
-  	tempos[1][zonaTempoAtual]+=(relogio - pagamentoPostos[posto]->tempoComeco);
+	if(pagamentoPostos[posto]->tempoComeco!=0){
+  		tempos[1][zonaTempoAtual]+=(relogio - pagamentoPostos[posto]->tempoComeco);
+  		pagamentoPostos[posto]->tempoComeco=0;	
+  	}
 	
 	//criamos o evento do cliente agora a ser atendido no posto livre.
 	makeEventPagamentoSaida(posto);
@@ -644,14 +661,14 @@ void imprimeFilaVendedores(){
 	printf("Postos|");
 	for(i=0;i<10;i++){
 		if(vendedoresPostos[i]==NULL)
-				printf("|0|");
+			printf("|0|");
 		else
 			printf("|1|");
 	}
 	printf("\nFILAS |");
 	for(j=0;j<maxClients;j++){
 		for(i=0;i<10;i++){
-			if(vendedoresFila[i][j]==NULL){
+			if(vendedoresFila[j][i]==NULL){
 				printf("|0|");
 				finish++;
 			}
