@@ -65,6 +65,7 @@ int tempos[3][4] = {0};
 int zonaTempoAtual= 0;
 int clientesZonaTempo[4];
 int clientescolocadosprioridade=0;
+int clientesprioritarios=0;
 
 int relogio=0;
 Evento*evento=NULL;
@@ -176,6 +177,7 @@ int main() {
 	}
 	
 	printf("\nCLIENTES COLOCADOS POR PRIORIDADE: %d",clientescolocadosprioridade);
+	printf("\nCLIENTES PRIORITARIOS           :  %d",clientesprioritarios);
 	printf("\n ESPERAS                       :");
 	printf("\n10h-13h:");
 	printf("\nFASE DE VENDEDORES             : %d",tempos[0][0]/clientesZonaTempo[0]);
@@ -281,7 +283,7 @@ void processarEventoSaidaVendedores(){
 	
     // Clientes que compram
 	if(prob<81){
-		prinf("\n CLIENTE DECIDIU IR AO PAGAMENTO");
+		printf("\n CLIENTE DECIDIU IR AO PAGAMENTO");
 		saidavendedores--;
 		int flag=0;
 		for(i=0;i<4;i++){
@@ -412,6 +414,7 @@ void processarEventoChegada(){
 	cliente->tempoComeco=0;
 	if(rand() % + 101 < (probPrioritario+1)){
 		cliente->prioridade=2;
+		clientesprioritarios++;
 		printf("\n CLIENTE PRIORITARIO");
 	}
 	else{
