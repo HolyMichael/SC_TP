@@ -138,13 +138,13 @@ int main() {
 			case 2:
 				processarEventoSaidaPagamento();
 				imprimeFilaPagamento();
-				imprimeFilaLevantamento();
+				//imprimeFilaLevantamento();
 				eventospagamento++;
 				break;
 			//Zona de Levantamento
 			case 3:
 				processarEventoSaidaLevantamento();
-				imprimeFilaLevantamento();
+				//imprimeFilaLevantamento();
 				eventoslevantamento++;
 				break;
 			case 4:
@@ -207,7 +207,7 @@ void makeEventPagamentoSaida(int posto){
 		tempo= rand() % 60+120;
 	if (tempe > 75)
 		tempo = rand() % 60+180;
-	
+	tempo=10000; //AQUI
 
 	tempo +=relogio;
     
@@ -294,7 +294,7 @@ void processarEventoSaidaVendedores(){
 			}
     	}
     	//caso não exista posto livre ocupar fila
-    	if(flag=0){
+    	if(flag==0){
 	    	printf("\nCLIENTE COLOCADO EM FILA");
 	    	//caso prioritario
 	    	if(vendedoresPostos[posto]->prioridade==2){
