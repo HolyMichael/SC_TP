@@ -312,7 +312,7 @@ void processarEventoSaidaVendedores(){
 	    		}
 	    		printf(" POR PRIORIDADE NO LUGAR %d",i+1);
 	    		//mover os clientes na fila para trás
-				for(j=maxClients;j>lugar;j--){
+				for(j=maxClients-1;j>=lugar;j--){
 					if(pagamentoFila[j]==NULL){
 						continue;
 					}
