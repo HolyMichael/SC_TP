@@ -125,14 +125,14 @@ int main() {
 			//Chegada Cliente
 			case 0:
 				processarEventoChegada();
-				//imprimeFilaVendedores(); //flush it to file
+			    //imprimeFilaVendedores(); //flush it to file
 				eventoschegada++;
 				break; 
 			//Fim Zona Vendedores
 			case 1:
 				processarEventoSaidaVendedores();
 				//imprimeFilaVendedores();
-				imprimeFilaPagamento();
+				//imprimeFilaPagamento();
 				eventosvendedor++;
 				break;
 			//Fim Zona Pagamento
@@ -146,6 +146,7 @@ int main() {
 			case 3:
 				processarEventoSaidaLevantamento();
 				imprimeFilaLevantamento();
+				imprimeFilaPagamento();
 				eventoslevantamento++;
 				break;
 			case 4:
