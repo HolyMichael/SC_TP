@@ -726,10 +726,16 @@ void imprimeFilaVendedores(){
 				finish++;
 			}
 			else{
-			if(vendedoresPostos[i]->prioridade==0)
-				printf("|G|");
-			if(vendedoresPostos[i]->prioridade==2)
-				printf("|P|");
+				if(vendedoresFila[j][i]->prioridade==0){
+					finish=0;
+					printf("|G|");
+					
+				}
+				if(vendedoresFila[j][i]->prioridade==2){
+					finish=0;
+					printf("|P|");
+					
+				}
 			}
 		}
 		if(finish<20)
