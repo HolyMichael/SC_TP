@@ -281,6 +281,7 @@ void processarEventoSaidaVendedores(){
 	
     // Clientes que compram
 	if(prob<81){
+		prinf("\n CLIENTE DECIDIU IR AO PAGAMENTO");
 		saidavendedores--;
 		int flag=0;
 		for(i=0;i<4;i++){
