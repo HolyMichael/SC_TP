@@ -139,13 +139,13 @@ int main() {
 			case 2:
 				processarEventoSaidaPagamento();
 				imprimeFilaPagamento();
-				//imprimeFilaLevantamento();
+				imprimeFilaLevantamento();
 				eventospagamento++;
 				break;
 			//Zona de Levantamento
 			case 3:
 				processarEventoSaidaLevantamento();
-				//imprimeFilaLevantamento();
+				imprimeFilaLevantamento();
 				eventoslevantamento++;
 				break;
 			case 4:
@@ -195,6 +195,7 @@ int main() {
 	printf("\nFASE DE VENDEDORES             : %d",tempos[0][3]/clientesZonaTempo[3]);
 	printf("\nFASE DE PAGAMENTO              : %d",tempos[1][3]/clientesZonaTempo[3]);
 	printf("\nFASE DE LEVANTAMENTO           : %d",tempos[2][3]/clientesZonaTempo[3]);
+	scanf("%d");
 }
 
 void makeEventPagamentoSaida(int posto){
