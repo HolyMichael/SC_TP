@@ -51,7 +51,7 @@ void imprimeFilaLevantamento();
  #define minClients 300
  #define maxClients 320
 int cli;
-int probPrioritario = 50;
+int probPrioritario = 5;
 int retornados=0;
 int saidavendedores=0;
 //percentagem de clients por hora (Entrada de Clientes)
