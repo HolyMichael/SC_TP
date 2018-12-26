@@ -51,16 +51,22 @@ void imprimeFilaLevantamento();
  #define minClients 300
  #define maxClients 320
 int cli;
-int probPrioritario = 50;
+int probPrioritario = 5;
 int retornados=0;
 int saidavendedores=0;
 //percentagem de clients por hora (Entrada de Clientes)
-int percentagem1 = 100; //10-13h
-int percentagem2 = 0; //13-16h
-int percentagem3 = 0; //16-19h
+int percentagem1 = 10; //10-13h defeito:10
+int percentagem2 = 30; //13-16h  defeito:30
+int percentagem3 = 15; //16-19h  defeito:15
 //  percentagem 4 é o restante para 100
 
 //Variavel estatisticas
+int espera00=9999999, espera01=9999999, espera02=9999999, espera03=9999999;
+int espera10=9999999, espera11=9999999, espera12=9999999, espera13=9999999;
+int espera20=9999999, espera21=9999999, espera22=9999999, espera23=9999999;
+int esperam00=-1, esperam01=-1, esperam02=-1, esperam03=-1;
+int esperam10=-1, esperam11=-1, esperam12=-1, esperam13=-1;
+int esperam20=-1, esperam21=-1, esperam22=-1, esperam23=-1;
 int tempos[3][4] = {0};
 int zonaTempoAtual= 0;
 int clientesZonaTempo[4];
@@ -138,15 +144,15 @@ int main() {
 			//Fim Zona Pagamento
 			case 2:
 				processarEventoSaidaPagamento();
-				imprimeFilaPagamento();
-				imprimeFilaLevantamento();
+				//imprimeFilaPagamento();
+				//imprimeFilaLevantamento();
 				eventospagamento++;
 				break;
 			//Zona de Levantamento
 			case 3:
 				processarEventoSaidaLevantamento();
-				imprimeFilaLevantamento();
-				imprimeFilaPagamento();
+				//imprimeFilaLevantamento();
+				//imprimeFilaPagamento();
 				eventoslevantamento++;
 				break;
 			case 4:
@@ -179,23 +185,23 @@ int main() {
 	
 	printf("\nCLIENTES COLOCADOS POR PRIORIDADE: %d",clientescolocadosprioridade);
 	printf("\nCLIENTES PRIORITARIOS           :  %d",clientesprioritarios);
-	printf("\n ESPERAS                       :");
+	printf("\n ESPERAS                        :");
 	printf("\n10h-13h:");
-	printf("\nFASE DE VENDEDORES             : %d",tempos[0][0]/clientesZonaTempo[0]);
-	printf("\nFASE DE PAGAMENTO              : %d",tempos[1][0]/clientesZonaTempo[0]);
-	printf("\nFASE DE LEVANTAMENTO           : %d",tempos[2][0]/clientesZonaTempo[0]);
+	printf("\nFASE DE VENDEDORES             : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[0][0]/clientesZonaTempo[0],espera00,esperam00);
+	printf("\nFASE DE PAGAMENTO              : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[1][0]/clientesZonaTempo[0],espera10,esperam10);
+	printf("\nFASE DE LEVANTAMENTO           : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[2][0]/clientesZonaTempo[0],espera20,esperam20);
 	printf("\n13h-16h:");
-	printf("\nFASE DE VENDEDORES             : %d",tempos[0][1]/clientesZonaTempo[1]);
-	printf("\nFASE DE PAGAMENTO              : %d",tempos[1][1]/clientesZonaTempo[1]);
-	printf("\nFASE DE LEVANTAMENTO           : %d",tempos[2][1]/clientesZonaTempo[1]);
+	printf("\nFASE DE VENDEDORES             : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[0][1]/clientesZonaTempo[1],espera01,esperam01);
+	printf("\nFASE DE PAGAMENTO              : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[1][1]/clientesZonaTempo[1],espera11,esperam11);
+	printf("\nFASE DE LEVANTAMENTO           : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[2][1]/clientesZonaTempo[1],espera21,esperam21);
 	printf("\n16h-19h:");
-	printf("\nFASE DE VENDEDORES             : %d",tempos[0][2]/clientesZonaTempo[2]);
-	printf("\nFASE DE PAGAMENTO              : %d",tempos[1][2]/clientesZonaTempo[2]);
-	printf("\nFASE DE LEVANTAMENTO           : %d",tempos[2][2]/clientesZonaTempo[2]);
+	printf("\nFASE DE VENDEDORES             : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[0][2]/clientesZonaTempo[2],espera02,esperam02);
+	printf("\nFASE DE PAGAMENTO              : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[1][2]/clientesZonaTempo[2],espera12,esperam12);
+	printf("\nFASE DE LEVANTAMENTO           : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[2][2]/clientesZonaTempo[2],espera22,esperam22);
 	printf("\n19h-22h:");
-	printf("\nFASE DE VENDEDORES             : %d",tempos[0][3]/clientesZonaTempo[3]);
-	printf("\nFASE DE PAGAMENTO              : %d",tempos[1][3]/clientesZonaTempo[3]);
-	printf("\nFASE DE LEVANTAMENTO           : %d",tempos[2][3]/clientesZonaTempo[3]);
+	printf("\nFASE DE VENDEDORES             : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[0][3]/clientesZonaTempo[3],espera03,esperam03);
+	printf("\nFASE DE PAGAMENTO              : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[1][3]/clientesZonaTempo[3],espera13,esperam13);
+	printf("\nFASE DE LEVANTAMENTO           : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[2][3]/clientesZonaTempo[3],espera23,esperam23);
 	printf("\nPress ENTER key to Continue\n");  
 	getchar(); 
 }
@@ -213,7 +219,7 @@ void makeEventPagamentoSaida(int posto){
 	if (tempe > 75)
 		tempo = rand() % 60+180;
 
-	tempo +=relogio + 60*60*60;
+	tempo +=relogio;
     
     makeEvent(2,tempo,posto);
 	printf("\n Novo Evento gerado:\n ETIPO:2\n TEMPO:%d\n",tempo);	
@@ -283,8 +289,32 @@ void processarEventoSaidaLevantamento(){
 		makeEventLevantamentoSaida(posto);
 		//atualizar variaveis estatisticas
 		if(levantamentoPostos[posto]->tempoComeco!=0){
-	  		tempos[2][zonaTempoAtual]+=(relogio - levantamentoPostos[posto]->tempoComeco);
-	  		levantamentoPostos[posto]->tempoComeco=0;	
+			if(levantamentoPostos[posto]->tempoComeco<10800){
+				if(espera20>(relogio - levantamentoPostos[posto]->tempoComeco))
+					espera20=relogio - levantamentoPostos[posto]->tempoComeco;
+				if(esperam20<(relogio - levantamentoPostos[posto]->tempoComeco))
+					espera20=relogio - levantamentoPostos[posto]->tempoComeco;
+				tempos[2][0]+=relogio - levantamentoPostos[posto]->tempoComeco;
+			}if(levantamentoPostos[posto]->tempoComeco>10799 && levantamentoPostos[posto]->tempoComeco<21600){
+				if(espera21>(relogio - levantamentoPostos[posto]->tempoComeco))
+					espera21=relogio - levantamentoPostos[posto]->tempoComeco;
+				if(esperam21<(relogio - levantamentoPostos[posto]->tempoComeco))
+					espera21=relogio - levantamentoPostos[posto]->tempoComeco;
+				tempos[2][1]+=relogio - levantamentoPostos[posto]->tempoComeco;
+			}if(levantamentoPostos[posto]->tempoComeco>21599 && levantamentoPostos[posto]->tempoComeco<32400){
+				if(espera22>(relogio - levantamentoPostos[posto]->tempoComeco))
+					espera22=relogio - levantamentoPostos[posto]->tempoComeco;
+				if(esperam22<(relogio - levantamentoPostos[posto]->tempoComeco))
+					espera22=relogio - levantamentoPostos[posto]->tempoComeco;
+				tempos[2][2]+=relogio - levantamentoPostos[posto]->tempoComeco;
+			}if(levantamentoPostos[posto]->tempoComeco>32399){
+				if(espera23>(relogio - levantamentoPostos[posto]->tempoComeco))
+					espera23=relogio - levantamentoPostos[posto]->tempoComeco;
+				if(esperam23<(relogio - levantamentoPostos[posto]->tempoComeco))
+					espera23=relogio - levantamentoPostos[posto]->tempoComeco;
+				tempos[2][3]+=relogio - levantamentoPostos[posto]->tempoComeco;
+			}
+	  		levantamentoPostos[posto]->tempoComeco=0;
 	  	}
 	
 		
@@ -368,13 +398,39 @@ void processarEventoSaidaVendedores(){
 		vendedoresPostos[posto]=NULL;
 		flag=1;
 	}
-	
-	//atualizar variaveis estatisticas
+
+
 	if(flag==0){
 	    //ir buscar o próximo cliente em fila
 	    vendedoresPostos[posto]=vendedoresFila[0][posto];
+		
+		//atualizar variaveis estatisticas
 		if(vendedoresPostos[posto]->tempoComeco!=0){
-	  		tempos[0][zonaTempoAtual]+=(relogio - vendedoresPostos[posto]->tempoComeco);
+			if(vendedoresPostos[posto]->tempoComeco<10800){
+				if(espera00>(relogio - vendedoresPostos[posto]->tempoComeco))
+					espera00=relogio - vendedoresPostos[posto]->tempoComeco;
+				if(esperam00<(relogio - vendedoresPostos[posto]->tempoComeco))
+					esperam00=relogio - vendedoresPostos[posto]->tempoComeco;
+				tempos[0][0]+=relogio - vendedoresPostos[posto]->tempoComeco;
+			}if(vendedoresPostos[posto]->tempoComeco>10799 && vendedoresPostos[posto]->tempoComeco<21600){
+				if(espera01>(relogio - vendedoresPostos[posto]->tempoComeco))
+					espera01=relogio - vendedoresPostos[posto]->tempoComeco;
+				if(esperam01<(relogio - vendedoresPostos[posto]->tempoComeco))
+					esperam01=relogio - vendedoresPostos[posto]->tempoComeco;
+				tempos[0][1]+=relogio - vendedoresPostos[posto]->tempoComeco;
+			}if(vendedoresPostos[posto]->tempoComeco>21599 && vendedoresPostos[posto]->tempoComeco<32400){
+				if(espera02>(relogio - vendedoresPostos[posto]->tempoComeco))
+					espera02=relogio - vendedoresPostos[posto]->tempoComeco;
+				if(esperam02<(relogio - vendedoresPostos[posto]->tempoComeco))
+					esperam02=relogio - vendedoresPostos[posto]->tempoComeco;
+				tempos[0][2]+=relogio - vendedoresPostos[posto]->tempoComeco;
+			}if(vendedoresPostos[posto]->tempoComeco>32399){
+				if(espera03>(relogio - vendedoresPostos[posto]->tempoComeco))
+					espera03=relogio - vendedoresPostos[posto]->tempoComeco;
+				if(esperam03<(relogio - vendedoresPostos[posto]->tempoComeco))
+					esperam03=relogio - vendedoresPostos[posto]->tempoComeco;
+				tempos[0][3]+=relogio - vendedoresPostos[posto]->tempoComeco;
+			}
 	  		vendedoresPostos[posto]->tempoComeco=0;
 	  	}
 	  		
@@ -546,10 +602,34 @@ void processarEventoSaidaPagamento(){
 			//mover o primeiro cliente na fila para o posto
 			pagamentoPostos[posto]=pagamentoFila[0];
 			//atualizar variaveis estatisticas
-			if(pagamentoPostos[posto]->tempoComeco!=0){
-		  		tempos[1][zonaTempoAtual]+=(relogio - pagamentoPostos[posto]->tempoComeco);
-		  		pagamentoPostos[posto]->tempoComeco=0;	
-		  	}
+		if(pagamentoPostos[posto]->tempoComeco!=0){
+			if(pagamentoPostos[posto]->tempoComeco<10800){
+				if(espera10>(relogio - pagamentoPostos[posto]->tempoComeco))
+					espera10=relogio - pagamentoPostos[posto]->tempoComeco;
+				if(esperam10<(relogio - pagamentoPostos[posto]->tempoComeco))
+					esperam10=relogio - pagamentoPostos[posto]->tempoComeco;
+				tempos[1][0]+=relogio - pagamentoPostos[posto]->tempoComeco;
+			}if(pagamentoPostos[posto]->tempoComeco>10799 && pagamentoPostos[posto]->tempoComeco<21600){
+				if(espera11>(relogio - pagamentoPostos[posto]->tempoComeco))
+					espera11=relogio - pagamentoPostos[posto]->tempoComeco;
+				if(esperam11<(relogio - pagamentoPostos[posto]->tempoComeco))
+					esperam11=relogio - pagamentoPostos[posto]->tempoComeco;
+				tempos[1][1]+=relogio - pagamentoPostos[posto]->tempoComeco;
+			}if(pagamentoPostos[posto]->tempoComeco>21599 && pagamentoPostos[posto]->tempoComeco<32400){
+				if(espera12>(relogio - pagamentoPostos[posto]->tempoComeco))
+					espera12=relogio - pagamentoPostos[posto]->tempoComeco;
+				if(esperam12<(relogio - pagamentoPostos[posto]->tempoComeco))
+					esperam12=relogio - pagamentoPostos[posto]->tempoComeco;
+				tempos[1][2]+=relogio - pagamentoPostos[posto]->tempoComeco;
+			}if(pagamentoPostos[posto]->tempoComeco>32399){
+				if(espera13>(relogio - pagamentoPostos[posto]->tempoComeco))
+					espera13=relogio - pagamentoPostos[posto]->tempoComeco;
+				if(esperam13<(relogio - pagamentoPostos[posto]->tempoComeco))
+					esperam13=relogio - pagamentoPostos[posto]->tempoComeco;
+				tempos[1][3]+=relogio - pagamentoPostos[posto]->tempoComeco;
+			}
+	  		pagamentoPostos[posto]->tempoComeco=0;
+	  	}
 			
 			//criamos o evento do cliente agora a ser atendido no posto livre.
 			makeEventPagamentoSaida(posto);
@@ -636,8 +716,32 @@ void processarEventoSaidaPagamento(){
 		pagamentoPostos[posto]=pagamentoFila[0];
 		//atualizar variaveis estatisticas
 		if(pagamentoPostos[posto]->tempoComeco!=0){
-	  		tempos[1][zonaTempoAtual]+=(relogio - pagamentoPostos[posto]->tempoComeco);
-	  		pagamentoPostos[posto]->tempoComeco=0;	
+			if(pagamentoPostos[posto]->tempoComeco<10800){
+				if(espera10>(relogio - pagamentoPostos[posto]->tempoComeco))
+					espera10=relogio - pagamentoPostos[posto]->tempoComeco;
+				if(esperam10<(relogio - pagamentoPostos[posto]->tempoComeco))
+					esperam10=relogio - pagamentoPostos[posto]->tempoComeco;
+				tempos[1][0]+=relogio - pagamentoPostos[posto]->tempoComeco;
+			}if(pagamentoPostos[posto]->tempoComeco>10799 && pagamentoPostos[posto]->tempoComeco<21600){
+				if(espera11>(relogio - pagamentoPostos[posto]->tempoComeco))
+					espera11=relogio - pagamentoPostos[posto]->tempoComeco;
+				if(esperam11<(relogio - pagamentoPostos[posto]->tempoComeco))
+					esperam11=relogio - pagamentoPostos[posto]->tempoComeco;
+				tempos[1][1]+=relogio - pagamentoPostos[posto]->tempoComeco;
+			}if(pagamentoPostos[posto]->tempoComeco>21599 && pagamentoPostos[posto]->tempoComeco<32400){
+				if(espera12>(relogio - pagamentoPostos[posto]->tempoComeco))
+					espera12=relogio - pagamentoPostos[posto]->tempoComeco;
+				if(esperam12<(relogio - pagamentoPostos[posto]->tempoComeco))
+					esperam12=relogio - pagamentoPostos[posto]->tempoComeco;
+				tempos[1][2]+=relogio - pagamentoPostos[posto]->tempoComeco;
+			}if(pagamentoPostos[posto]->tempoComeco>32399){
+				if(espera13>(relogio - pagamentoPostos[posto]->tempoComeco))
+					espera13=relogio - pagamentoPostos[posto]->tempoComeco;
+				if(esperam13<(relogio - pagamentoPostos[posto]->tempoComeco))
+					esperam13=relogio - pagamentoPostos[posto]->tempoComeco;
+				tempos[1][3]+=relogio - pagamentoPostos[posto]->tempoComeco;
+			}
+	  		pagamentoPostos[posto]->tempoComeco=0;
 	  	}
 		
 		//criamos o evento do cliente agora a ser atendido no posto livre.
