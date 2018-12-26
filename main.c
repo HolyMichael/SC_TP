@@ -125,13 +125,13 @@ int main() {
 			//Chegada Cliente
 			case 0:
 				processarEventoChegada();
-				imprimeFilaVendedores(); //flush it to file
+				//imprimeFilaVendedores(); //flush it to file
 				eventoschegada++;
 				break; 
 			//Fim Zona Vendedores
 			case 1:
 				processarEventoSaidaVendedores();
-				imprimeFilaVendedores();
+				//imprimeFilaVendedores();
 				imprimeFilaPagamento();
 				eventosvendedor++;
 				break;
@@ -195,7 +195,8 @@ int main() {
 	printf("\nFASE DE VENDEDORES             : %d",tempos[0][3]/clientesZonaTempo[3]);
 	printf("\nFASE DE PAGAMENTO              : %d",tempos[1][3]/clientesZonaTempo[3]);
 	printf("\nFASE DE LEVANTAMENTO           : %d",tempos[2][3]/clientesZonaTempo[3]);
-	scanf("%d");
+	printf("\nPress ENTER key to Continue\n");  
+	getchar(); 
 }
 
 void makeEventPagamentoSaida(int posto){
@@ -210,7 +211,6 @@ void makeEventPagamentoSaida(int posto){
 		tempo= rand() % 60+120;
 	if (tempe > 75)
 		tempo = rand() % 60+180;
-	tempo=10000; //AQUI
 
 	tempo +=relogio;
     
@@ -400,7 +400,7 @@ void makeEventLevantamentoSaida(int posto){
 		tempo= rand() % 301+ 600;
 	if(tempe > 95)
 		tempo = rand () % 301 + 900;
-
+	tempo=2000000;
 	tempo +=relogio;
     
     makeEvent(3,tempo,posto);
@@ -509,7 +509,59 @@ void processarEventoSaidaPagamento(){
 	int prob= rand() % 101;
 	
 	// Clientes que levantam
-	if(prob<61){
+		if(prob<61){
+		printf("\n CLIENTE DECIDIU IR AO LEVANTAMENTO");
+		int flag=0;
+		for(i=0;i<2;i++){
+		//Ocupar posto, se existir
+			if(levantamentoPostos[i]==NULL){
+				makeEventLevantamentoSaida(i); //LEVANTAMENTO!
+				levantamentoPostos[i] = pagamentoPostos[posto];
+				flag=1;
+				break;
+			}
+    	}
+    	//caso não exista posto livre ocupar fila
+    	if(flag==0){
+	    	printf("\nCLIENTE COLOCADO EM FILA");
+	    	//caso prioritario
+	    	if(pagamentoPostos[posto]->prioridade==2){
+	    		//selecionar o lugar correcto
+	    		int lugar;
+	    		for(i=0;i<maxClients;i++){
+	    			if(levantamentoFila[i]==NULL || levantamentoFila[i]->prioridade==0){
+	    				lugar=i;
+	    				break;
+	    			}
+	    		}
+	    		int j;
+	    		printf(" POR PRIORIDADE NO LUGAR %d",i+1);
+	    		//mover os clientes na fila para trás
+				for(j=maxClients-1;j>=lugar;j--){
+					if(levantamentoFila[j]==NULL){
+						continue;
+					}
+					levantamentoFila[j+1]=levantamentoFila[j];
+				}
+				//colocar o cliente no seu lugar
+				levantamentoFila[lugar]=pagamentoPostos[posto];
+	    	}
+	    	else{
+	    	//caso nao prioritario
+		    	int i;
+		    	printf(" SEM PRIORIDADE");
+		    	for(i=0;i<maxClients;i++){
+		    		if(levantamentoFila[i]==NULL && flag == 0){
+		    			//inicializar o novo tempo
+		    			pagamentoPostos[posto]->tempoComeco=relogio;
+		    			levantamentoFila[i] = pagamentoPostos[posto];
+		    			break;
+		    		}
+		    	}
+		    }
+		}
+	}
+	/*if(prob<61){
 		int flag=0;
 		for(i=0;i<2;i++){
 		//Ocupar posto, se existir
@@ -529,7 +581,7 @@ void processarEventoSaidaPagamento(){
     			break;
     		}
     	}
-	}
+	}*/
 	
 	
 	// Limpeza de filas e postos. Quem nao compra vai embora.
@@ -710,11 +762,29 @@ void imprimeLista(){
 void imprimeFilaLevantamento(){
 	int i;
 	printf("\n\nFila de Levantamento\n");
-	printf("Postos: %i | %i\n", (levantamentoPostos[0]!=NULL),(levantamentoPostos[1]!=NULL));
-	printf("Filas :");
+	printf("Postos: ");
+	for(i=0;i<2;i++){
+		if((levantamentoPostos[i]!=NULL)){
+			if(levantamentoPostos[i]->prioridade==2)
+				printf(" P |");
+			if(levantamentoPostos[i]->prioridade==1)
+				printf(" R |");
+			if(levantamentoPostos[i]->prioridade==0)
+				printf(" G |");
+		}
+		else
+			printf(" 0 |");
+	}
+	printf("\nFilas :");
 	for(i = 0; i< maxClients ;i++){
-		if(levantamentoFila[i]!=NULL)
-			printf("| 1");
+		if(levantamentoFila[i]!=NULL){
+			if(levantamentoFila[i]->prioridade==2)
+				printf(" P |");
+			if(levantamentoFila[i]->prioridade==1)
+				printf(" R |");
+			if(levantamentoFila[i]->prioridade==0)
+				printf(" G |");
+		}
 		else break;
 			
 	}
@@ -748,7 +818,6 @@ void imprimeFilaPagamento(){
 				printf("|R|");
 		}
 		else break;
-			
 	}
 	printf("\n");
 }
