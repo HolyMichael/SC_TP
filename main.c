@@ -225,7 +225,7 @@ void processarEventoSaidaLevantamento(){
 	int posto=evento->posto;
 	int prob= rand() % 101;
   	
-  	if(prob<6){
+  	if(prob<101){
     // Clientes que regressam ao pagamento
     	printf("\n CLIENTE DECIDIU REGRESSAR AO PAGAMENTO");
     	//alteramos a prioridade do cliente para retornado
