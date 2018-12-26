@@ -325,7 +325,7 @@ void processarEventoSaidaVendedores(){
 	    		//selecionar o lugar correcto
 	    		int lugar;
 	    		for(i=0;i<maxClients;i++){
-	    			if(pagamentoFila[i]==NULL || pagamentoFila[i]->prioridade==0){
+	    			if(pagamentoFila[i]==NULL || pagamentoFila[i]->prioridade==0 || pagamentoFila[i]->prioridade == 1){
 	    				lugar=i;
 	    				break;
 	    			}
