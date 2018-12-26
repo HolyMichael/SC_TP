@@ -293,25 +293,25 @@ void processarEventoSaidaLevantamento(){
 				if(espera20>(relogio - levantamentoPostos[posto]->tempoComeco))
 					espera20=relogio - levantamentoPostos[posto]->tempoComeco;
 				if(esperam20<(relogio - levantamentoPostos[posto]->tempoComeco))
-					espera20=relogio - levantamentoPostos[posto]->tempoComeco;
+					esperam20=relogio - levantamentoPostos[posto]->tempoComeco;
 				tempos[2][0]+=relogio - levantamentoPostos[posto]->tempoComeco;
 			}if(levantamentoPostos[posto]->tempoComeco>10799 && levantamentoPostos[posto]->tempoComeco<21600){
 				if(espera21>(relogio - levantamentoPostos[posto]->tempoComeco))
 					espera21=relogio - levantamentoPostos[posto]->tempoComeco;
 				if(esperam21<(relogio - levantamentoPostos[posto]->tempoComeco))
-					espera21=relogio - levantamentoPostos[posto]->tempoComeco;
+					esperam21=relogio - levantamentoPostos[posto]->tempoComeco;
 				tempos[2][1]+=relogio - levantamentoPostos[posto]->tempoComeco;
 			}if(levantamentoPostos[posto]->tempoComeco>21599 && levantamentoPostos[posto]->tempoComeco<32400){
 				if(espera22>(relogio - levantamentoPostos[posto]->tempoComeco))
 					espera22=relogio - levantamentoPostos[posto]->tempoComeco;
 				if(esperam22<(relogio - levantamentoPostos[posto]->tempoComeco))
-					espera22=relogio - levantamentoPostos[posto]->tempoComeco;
+					esperam22=relogio - levantamentoPostos[posto]->tempoComeco;
 				tempos[2][2]+=relogio - levantamentoPostos[posto]->tempoComeco;
 			}if(levantamentoPostos[posto]->tempoComeco>32399){
 				if(espera23>(relogio - levantamentoPostos[posto]->tempoComeco))
 					espera23=relogio - levantamentoPostos[posto]->tempoComeco;
 				if(esperam23<(relogio - levantamentoPostos[posto]->tempoComeco))
-					espera23=relogio - levantamentoPostos[posto]->tempoComeco;
+					esperam23=relogio - levantamentoPostos[posto]->tempoComeco;
 				tempos[2][3]+=relogio - levantamentoPostos[posto]->tempoComeco;
 			}
 	  		levantamentoPostos[posto]->tempoComeco=0;
