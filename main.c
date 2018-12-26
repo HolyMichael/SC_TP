@@ -232,7 +232,7 @@ void processarEventoSaidaLevantamento(){
     	//alteramos a prioridade do cliente para retornado
     	levantamentoPostos[posto]->prioridade=1;
 		int flag=0;
-		for(i=0;i<2;i++){
+		for(i=0;i<4;i++){
 		//Ocupar posto, se existir
 			if(pagamentoPostos[i]==NULL){
 				makeEventPagamentoSaida(i); //LEVANTAMENTO!
@@ -241,31 +241,32 @@ void processarEventoSaidaLevantamento(){
 				break;
 			}
     	}
-    	//caso não exista posto livre ocupar fila
+    	//caso não exista posto livre ocupar fila com prioridade R
     	if(flag==0){
 	    	printf("\nCLIENTE COLOCADO EM FILA");
-	    	//caso prioritario
-	    	if(pagamentoPostos[posto]->prioridade==2){
-	    		//selecionar o lugar correcto
-	    		int lugar;
-	    		for(i=0;i<maxClients;i++){
-	    			if(pagamentoFila[i]==NULL || pagamentoFila[i]->prioridade==0){
-	    				lugar=i;
-	    				break;
-	    			}
-	    		}
-	    		int j;
-	    		printf(" POR PRIORIDADE NO LUGAR %d",i+1);
-	    		//mover os clientes na fila para trás
-				for(j=maxClients-1;j>=lugar;j--){
-					if(pagamentoFila[j]==NULL){
-						continue;
-					}
-					pagamentoFila[j+1]=pagamentoFila[j];
+    		//selecionar o lugar correcto
+    		int lugar;
+    		for(i=0;i<maxClients;i++){
+    			if(pagamentoFila[i]==NULL){
+    				lugar=i;
+    				break;
+    			}
+    			if(pagamentoFila[i]==NULL || pagamentoFila[i]->prioridade==0){
+    				lugar=i;
+    				break;
+    			}
+    		}
+    		int j;
+    		printf(" POR PRIORIDADE RETORNADO NO LUGAR %d",i+1);
+    		//mover os clientes na fila para trás
+			for(j=maxClients-1;j>=lugar;j--){
+				if(pagamentoFila[j]==NULL){
+					continue;
 				}
-				//colocar o cliente no seu lugar
-				pagamentoFila[lugar]=levantamentoPostos[posto];
-	    	}
+				pagamentoFila[j+1]=pagamentoFila[j];
+			}
+			//colocar o cliente no seu lugar
+			pagamentoFila[lugar]=levantamentoPostos[posto];
 		}
 	}
 
@@ -325,7 +326,11 @@ void processarEventoSaidaVendedores(){
 	    		//selecionar o lugar correcto
 	    		int lugar;
 	    		for(i=0;i<maxClients;i++){
-	    			if(pagamentoFila[i]==NULL || pagamentoFila[i]->prioridade==0 || pagamentoFila[i]->prioridade == 1){
+	    			if(pagamentoFila[i]==NULL){
+	    				lugar=i;
+	    				break;
+	    			}
+	    			if(pagamentoFila[i]->prioridade==0 || pagamentoFila[i]->prioridade == 1){
 	    				lugar=i;
 	    				break;
 	    			}
@@ -581,6 +586,10 @@ void processarEventoSaidaPagamento(){
 	    		//selecionar o lugar correcto
 	    		int lugar;
 	    		for(i=0;i<maxClients;i++){
+	    			if(levantamentoFila[i]==NULL){
+	    				lugar=i;
+	    				break;	    				
+	    			}
 	    			if(levantamentoFila[i]==NULL || levantamentoFila[i]->prioridade==0){
 	    				lugar=i;
 	    				break;
