@@ -213,7 +213,7 @@ void makeEventPagamentoSaida(int posto){
 	if (tempe > 75)
 		tempo = rand() % 60+180;
 
-	tempo +=relogio;
+	tempo +=relogio + 60*60*60;
     
     makeEvent(2,tempo,posto);
 	printf("\n Novo Evento gerado:\n ETIPO:2\n TEMPO:%d\n",tempo);	
