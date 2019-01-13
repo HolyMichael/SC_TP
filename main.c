@@ -1,9 +1,14 @@
+/* Trabalho de Computa√ß√£o Cient√≠fica 
+
+Realizado por:
+ Alexandre Fonseca (E10154) e Miguel Brand√£o (M9390) */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
-#include "helper.h"
+
 
 
 //Estruturas
@@ -26,7 +31,7 @@ int tempoComeco;//Tempo em que o cliente chega ao sistema
 }Cliente;
 
 
-//FunÁıes
+//Funcoes
 void setup();
 void makeEvent(int tipo,int tempo,int posto);
 void inserirEventoInicio( Evento*nv);
@@ -43,11 +48,10 @@ void imprimeLista();
 void imprimeFilaVendedores();
 void imprimeFilaPagamento();
 void imprimeFilaLevantamento();
-
-
+int  *bubble_sort(int *a, int n);
 //Variaveis Globais
 
-//alterar n˙mero de clientes aqui
+//alterar numero de clientes aqui
  #define minClients 300
  #define maxClients 320
 int cli;
@@ -58,7 +62,7 @@ int saidavendedores=0;
 int percentagem1 = 10; //10-13h defeito:10
 int percentagem2 = 30; //13-16h  defeito:30
 int percentagem3 = 15; //16-19h  defeito:15
-//  percentagem 4 È o restante para 100
+//  percentagem 4 √© o restante para 100
 
 //Variavel estatisticas
 int espera00=9999999, espera01=9999999, espera02=9999999, espera03=9999999;
@@ -72,6 +76,8 @@ int zonaTempoAtual= 0;
 int clientesZonaTempo[4];
 int clientescolocadosprioridade=0;
 int clientesprioritarios=0;
+int  *minimo;
+int  *maximo ;
 
 int relogio=0;
 Evento*evento=NULL;
@@ -88,7 +94,13 @@ struct Cliente *pagamentoFila[maxClients] = {NULL};
 struct Cliente *levantamentoPostos[2]={NULL};
 struct Cliente *levantamentoFila[maxClients] = {NULL};
 
+//Ficheiro 
+FILE *fp;
+
+
+
 int main() {
+	fp= fopen("iteracoes.txt","w");
 	int tipoEvento;
 	int eventosprocessados=0;
 	int eventoschegada=0;
@@ -100,65 +112,65 @@ int main() {
 	setup();
 	saidavendedores=cli;
     imprimeLista();
-    printf("\nNUM_CLIENTES: %d", cli);
-	printf("\n\n\n");
+    fprintf(fp,"\nNUM_CLIENTES: %d", cli);
+	fprintf(fp,"\n\n\n");
 	while(evento!=NULL){
 		tipoEvento=evento->tipo;
 		relogio=evento->tempoOcorrencia;
 		eventosprocessados++;
-		printf("\n------ UM NOVO EVENTO ------\n");
+		fprintf(fp,"\n------ UM NOVO EVENTO ------\n");
 		switch(tipoEvento){
 			case 0:
-				printf("EVENTO_TIPO: 0 CHEGADA CLIENTE\n");
+				fprintf(fp,"EVENTO_TIPO: 0 CHEGADA CLIENTE\n");
 				break;
 			case 1:
-				printf("EVENTO_TIPO: 1 SAIDA VENDEDORES");
-				printf(" %d \n",evento->posto);
+				fprintf(fp,"EVENTO_TIPO: 1 SAIDA VENDEDORES");
+				fprintf(fp," %d \n",evento->posto);
 				break;
 			case 2:
-				printf("EVENTO_TIPO: 2 SAIDA PAGAMENTO\n");
+				fprintf(fp,"EVENTO_TIPO: 2 SAIDA PAGAMENTO\n");
 				break;
 			case 3:
-				printf("EVENTO_TIPO: 3 SAIDA LEVANTAMENTO\n");
+				fprintf(fp,"EVENTO_TIPO: 3 SAIDA LEVANTAMENTO\n");
 				break;
 			case 4:
-				printf("EVENTO_TIPO: 4 PASSAGEM ZONA TEMPORAL\n");
+				fprintf(fp,"EVENTO_TIPO: 4 PASSAGEM ZONA TEMPORAL\n");
 				break;
 		}
-		printf("NUM_EVENTOS: %d\n", eventosprocessados);
-		printf("CLOCK_ATUAL: %d\n",relogio);
+		fprintf(fp,"NUM_EVENTOS: %d\n", eventosprocessados);
+		fprintf(fp,"CLOCK_ATUAL: %d\n",relogio);
 		switch(tipoEvento){
 			//Chegada Cliente
 			case 0:
 				processarEventoChegada();
-			    //imprimeFilaVendedores(); //flush it to file
+			    imprimeFilaVendedores(); 
 				eventoschegada++;
 				break; 
 			//Fim Zona Vendedores
 			case 1:
 				processarEventoSaidaVendedores();
-				//imprimeFilaVendedores();
-				//imprimeFilaPagamento();
+				imprimeFilaVendedores();
+				imprimeFilaPagamento();
 				eventosvendedor++;
 				break;
 			//Fim Zona Pagamento
 			case 2:
 				processarEventoSaidaPagamento();
-				//imprimeFilaPagamento();
-				//imprimeFilaLevantamento();
+				imprimeFilaPagamento();
+				imprimeFilaLevantamento();
 				eventospagamento++;
 				break;
 			//Zona de Levantamento
 			case 3:
 				processarEventoSaidaLevantamento();
-				//imprimeFilaLevantamento();
-				//imprimeFilaPagamento();
+				imprimeFilaLevantamento();
+				imprimeFilaPagamento();
 				eventoslevantamento++;
 				break;
 			case 4:
 				eventospassagem++;
 				zonaTempoAtual++;
-				printf("ESTAMOS AGORA NA ZONA %d", zonaTempoAtual);
+				fprintf(fp,"ESTAMOS AGORA NA ZONA %d", zonaTempoAtual);
 				break;
 			default:
 				return;
@@ -166,44 +178,58 @@ int main() {
 	   }
 	 evento=evento->nseg;
 	}
-	printf("-------   FIM   -------");
+	
 	imprimeFilaVendedores();
 	imprimeFilaPagamento();
 	imprimeFilaLevantamento();
-	printf("\n\n %d clientes, e %d eventos processados\n", cli, eventosprocessados);
-	printf("\nEventos de chegada            : %d",eventoschegada);
-	printf("\nEventos de saida vendedores   : %d",eventosvendedor);
-	printf("\nEventos de saida pagamento    : %d",eventospagamento);
-	printf("\nEventos de saida levantamento : %d\n",eventoslevantamento);
-	printf("\nRETORNADOS                    : %d", retornados);
-	printf("\nSAIDAS NOS VENDEDORES         : %d", saidavendedores);
-	printf("\nEVENTOS PASSAGEM              : %d\n", eventospassagem);
+	printf("\n\n %d clientes e %d eventos processados\n", cli, eventosprocessados);
+	printf("\n Eventos de chegada            : %d",eventoschegada);
+	printf("\n Eventos de saida vendedores   : %d",eventosvendedor);
+	printf("\n Eventos de saida pagamento    : %d",eventospagamento);
+	printf("\n Eventos de saida levantamento : %d\n",eventoslevantamento);
+	//printf("\nRETORNADOS                    : %d", retornados);
+	printf("\n SAIDAS NOS VENDEDORES         : %d", saidavendedores);
+	printf("\n EVENTOS PASSAGEM              : %d\n", eventospassagem);
 	int i;
 	for(i=0;i<4;i++){
-		printf("CLIENTES ZONA TEMPORAL %d    : %d\n",i+1,clientesZonaTempo[i]);
+		printf(" CLIENTES ZONA TEMPORAL %d    : %d\n",i+1,clientesZonaTempo[i]);
 	}
 	
-	printf("\nCLIENTES COLOCADOS POR PRIORIDADE: %d",clientescolocadosprioridade);
-	printf("\nCLIENTES PRIORITARIOS           :  %d",clientesprioritarios);
-	printf("\n ESPERAS                        :");
-	printf("\n10h-13h:");
-	printf("\nFASE DE VENDEDORES             : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[0][0]/clientesZonaTempo[0],espera00,esperam00);
-	printf("\nFASE DE PAGAMENTO              : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[1][0]/clientesZonaTempo[0],espera10,esperam10);
-	printf("\nFASE DE LEVANTAMENTO           : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[2][0]/clientesZonaTempo[0],espera20,esperam20);
-	printf("\n13h-16h:");
-	printf("\nFASE DE VENDEDORES             : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[0][1]/clientesZonaTempo[1],espera01,esperam01);
-	printf("\nFASE DE PAGAMENTO              : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[1][1]/clientesZonaTempo[1],espera11,esperam11);
-	printf("\nFASE DE LEVANTAMENTO           : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[2][1]/clientesZonaTempo[1],espera21,esperam21);
-	printf("\n16h-19h:");
-	printf("\nFASE DE VENDEDORES             : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[0][2]/clientesZonaTempo[2],espera02,esperam02);
-	printf("\nFASE DE PAGAMENTO              : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[1][2]/clientesZonaTempo[2],espera12,esperam12);
-	printf("\nFASE DE LEVANTAMENTO           : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[2][2]/clientesZonaTempo[2],espera22,esperam22);
-	printf("\n19h-22h:");
-	printf("\nFASE DE VENDEDORES             : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[0][3]/clientesZonaTempo[3],espera03,esperam03);
-	printf("\nFASE DE PAGAMENTO              : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[1][3]/clientesZonaTempo[3],espera13,esperam13);
-	printf("\nFASE DE LEVANTAMENTO           : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[2][3]/clientesZonaTempo[3],espera23,esperam23);
-	printf("\nPress ENTER key to Continue\n");  
-	getchar(); 
+	printf("\n CLIENTES COLOCADOS POR PRIORIDADE: %d",clientescolocadosprioridade);
+	printf("\n CLIENTES PRIORITARIOS           :  %d",clientesprioritarios);
+	printf("\n ESPERAS                        ");
+	printf("\n 10h-13h:");
+	printf("\n FASE DE VENDEDORES             : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[0][0]/clientesZonaTempo[0],espera00,esperam00);
+	printf("\n FASE DE PAGAMENTO              : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[1][0]/clientesZonaTempo[0],espera10,esperam10);
+	printf("\n FASE DE LEVANTAMENTO           : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[2][0]/clientesZonaTempo[0],espera20,esperam20);
+	printf("\n 13h-16h:");
+	printf("\n FASE DE VENDEDORES             : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[0][1]/clientesZonaTempo[1],espera01,esperam01);
+	printf("\n FASE DE PAGAMENTO              : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[1][1]/clientesZonaTempo[1],espera11,esperam11);
+	printf("\n FASE DE LEVANTAMENTO           : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[2][1]/clientesZonaTempo[1],espera21,esperam21);
+	printf("\n 16h-19h:");
+	printf("\n FASE DE VENDEDORES             : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[0][2]/clientesZonaTempo[2],espera02,esperam02);
+	printf("\n FASE DE PAGAMENTO              : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[1][2]/clientesZonaTempo[2],espera12,esperam12);
+	printf("\n FASE DE LEVANTAMENTO           : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[2][2]/clientesZonaTempo[2],espera22,esperam22);
+	printf("\n 19h-22h:");
+	printf("\n FASE DE VENDEDORES             : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[0][3]/clientesZonaTempo[3],espera03,esperam03);
+	printf("\n FASE DE PAGAMENTO              : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[1][3]/clientesZonaTempo[3],espera13,esperam13);
+	printf("\n FASE DE LEVANTAMENTO           : MEDIA:%d MINIMA:%d MAXIMA:%d",tempos[2][3]/clientesZonaTempo[3],espera23,esperam23);
+	int mediasMinimas  [12]  = {espera00,espera10,espera20,espera01,espera11,espera21,espera02,espera12,espera22,espera03,espera13,espera23};
+	int mediasMaximas  [12] = {esperam00,esperam10,esperam20,esperam01,esperam11,esperam21,esperam02,esperam12,esperam22,esperam03,esperam13,esperam23};
+	 minimo  = bubble_sort(mediasMinimas,12);
+     maximo  = bubble_sort(mediasMaximas,12);
+     int mediaTotal=((tempos[0][0]/clientesZonaTempo[0]+tempos[1][0]/clientesZonaTempo[0]+tempos[2][0]/clientesZonaTempo[0]+tempos[0][1]/clientesZonaTempo[1]+
+	 tempos[1][1]/clientesZonaTempo[1]+tempos[2][1]/clientesZonaTempo[1]+tempos[0][3]/clientesZonaTempo[3]+tempos[1][3]/clientesZonaTempo[3]
+	 +tempos[2][3]/clientesZonaTempo[3])/12);
+	printf("\n TEMPO DE ESPERA MINIMO NAS 12H: %d",minimo[0]);
+	printf("\n TEMPO DE ESPERA MAXIMO NAS 12H: %d",maximo[11]);
+	printf("\n TEMPO DE ESPERA MEDIO  NAS 12H: %d",mediaTotal);
+	printf("\n Press ENTER key to Continue\n");  
+	fprintf(fp,"\n-------   FIM   -------");
+	fclose(fp);
+	
+	//getchar(); 
+	
 }
 
 void makeEventPagamentoSaida(int posto){
@@ -222,7 +248,7 @@ void makeEventPagamentoSaida(int posto){
 	tempo +=relogio;
     
     makeEvent(2,tempo,posto);
-	printf("\n Novo Evento gerado:\n ETIPO:2\n TEMPO:%d\n",tempo);	
+	fprintf(fp,"\n Novo Evento gerado:\n ETIPO:2\n TEMPO:%d\n",tempo);	
 	//imprimeLista();
 
 }
@@ -232,9 +258,9 @@ void processarEventoSaidaLevantamento(){
 	int posto=evento->posto;
 	int prob= rand() % 101;
   	
-  	if(prob<101){
+  	if(prob<6){
     // Clientes que regressam ao pagamento
-    	printf("\n CLIENTE DECIDIU REGRESSAR AO PAGAMENTO");
+    	fprintf(fp,"\n CLIENTE DECIDIU REGRESSAR AO PAGAMENTO");
     	//alteramos a prioridade do cliente para retornado
     	levantamentoPostos[posto]->prioridade=1;
 		int flag=0;
@@ -247,9 +273,9 @@ void processarEventoSaidaLevantamento(){
 				break;
 			}
     	}
-    	//caso n„o exista posto livre ocupar fila com prioridade R
+    	//caso nao exista posto livre ocupar fila com prioridade R
     	if(flag==0){
-	    	printf("\nCLIENTE COLOCADO EM FILA");
+	    	fprintf(fp,"\nCLIENTE COLOCADO EM FILA");
     		//selecionar o lugar correcto
     		int lugar;
     		for(i=0;i<maxClients;i++){
@@ -263,8 +289,8 @@ void processarEventoSaidaLevantamento(){
     			}
     		}
     		int j;
-    		printf(" POR PRIORIDADE RETORNADO NO LUGAR %d",i+1);
-    		//mover os clientes na fila para tr·s
+    		fprintf(fp," POR PRIORIDADE RETORNADO NO LUGAR %d",i+1);
+    		//mover os clientes na fila para tr√°s
 			for(j=maxClients-1;j>=lugar;j--){
 				if(pagamentoFila[j]==NULL){
 					continue;
@@ -335,22 +361,22 @@ void processarEventoSaidaVendedores(){
 	
     // Clientes que compram
 	if(prob<81){
-		printf("\n CLIENTE DECIDIU IR AO PAGAMENTO");
+		fprintf(fp,"\n CLIENTE DECIDIU IR AO PAGAMENTO");
 		saidavendedores--;
 		int flag=0;
 		for(i=0;i<4;i++){
 		//Ocupar posto, se existir
 			if(pagamentoPostos[i]==NULL){
-				printf("\nCLIENTE COLOCADO EM POSTO");
+				fprintf(fp,"\nCLIENTE COLOCADO EM POSTO");
 				makeEventPagamentoSaida(i);
 				pagamentoPostos[i] = vendedoresPostos[posto];
 				flag=1;
 				break;
 			}
     	}
-    	//caso n„o exista posto livre ocupar fila
+    	//caso nao exista posto livre ocupar fila
     	if(flag==0){
-	    	printf("\nCLIENTE COLOCADO EM FILA");
+	    	fprintf(fp,"\nCLIENTE COLOCADO EM FILA");
 	    	//caso prioritario
 	    	if(vendedoresPostos[posto]->prioridade==2){
 	    		//selecionar o lugar correcto
@@ -365,8 +391,8 @@ void processarEventoSaidaVendedores(){
 	    				break;
 	    			}
 	    		}
-	    		printf(" POR PRIORIDADE NO LUGAR %d",i+1);
-	    		//mover os clientes na fila para tr·s
+	    		fprintf(fp," POR PRIORIDADE NO LUGAR %d",i+1);
+	    		//mover os clientes na fila para tr√°s
 				for(j=maxClients-1;j>=lugar;j--){
 					if(pagamentoFila[j]==NULL){
 						continue;
@@ -379,7 +405,7 @@ void processarEventoSaidaVendedores(){
 	    	else{
 	    	//caso nao prioritario
 		    	int i;
-		    	printf(" SEM PRIORIDADE");
+		    	fprintf(fp," SEM PRIORIDADE");
 		    	for(i=0;i<maxClients;i++){
 		    		if(pagamentoFila[i]==NULL && flag == 0){
 		    			//inicializar o novo tempo
@@ -394,14 +420,14 @@ void processarEventoSaidaVendedores(){
 	
 	int flag=0;
 	if(vendedoresFila[0][posto]==NULL){
-		printf("\nnao ha ninguem na fila\n");
+		fprintf(fp,"\n Nao ha ninguem na fila\n");
 		vendedoresPostos[posto]=NULL;
 		flag=1;
 	}
 
 
 	if(flag==0){
-	    //ir buscar o prÛximo cliente em fila
+	    //ir buscar o pr√≥ximo cliente em fila
 	    vendedoresPostos[posto]=vendedoresFila[0][posto];
 		
 		//atualizar variaveis estatisticas
@@ -465,7 +491,7 @@ void makeEventVendedoresSaida(int posto){
 	tempo +=relogio;
     
     makeEvent(1,tempo,posto);
-	printf("\n Novo Evento gerado:\n ETIPO:1\n TEMPO:%d\n",tempo);
+	fprintf(fp,"\n Novo Evento gerado:\n ETIPO:1\n TEMPO:%d\n",tempo);
 
 }
 
@@ -484,7 +510,7 @@ void makeEventLevantamentoSaida(int posto){
 	tempo +=relogio;
     
     makeEvent(3,tempo,posto);
-	printf("\n Novo Evento gerado:\n ETIPO:3\n TEMPO:%d\n",tempo);
+	fprintf(fp,"\n Novo Evento gerado:\n ETIPO:3\n TEMPO:%d\n",tempo);
 
 }
 
@@ -496,34 +522,34 @@ void processarEventoChegada(){
 	if(rand() % + 101 < (probPrioritario+1)){
 		cliente->prioridade=2;
 		clientesprioritarios++;
-		printf("\n CLIENTE PRIORITARIO");
+		fprintf(fp,"\n CLIENTE PRIORITARIO");
 	}
 	else{
 		cliente->prioridade=0;
-		printf("\n CLIENTE NAO PRIORITARIO");
+		fprintf(fp,"\n CLIENTE NAO PRIORITARIO");
 	}
 	//2 filas prioritarias:8 e 9. Clientes gerais: Escolher onde ha menos gente. Se iguais, nao prioritaria.
 	for(i=0;i<10;i++){
 		//Ocupar posto, se existir
 		if(vendedoresPostos[i]==NULL){
-			printf("\n CLIENTE COLOCADO NO POSTO %d",i);
+			fprintf(fp,"\n CLIENTE COLOCADO NO POSTO %d",i);
 			makeEventVendedoresSaida(i);
 			vendedoresPostos[i] = cliente;
 			return;
 		}
     }
 
-	printf("\nA COLOCAR CLIENTE EM FILA");
+	fprintf(fp,"\nA COLOCAR CLIENTE EM FILA");
 	//Qdo os postos estao cheios, colocar o cliente na fila otima	
 	//caso cliente prioritario
 	if(cliente->prioridade==2){ //Escolher a fila prioritaria com menos pessoas prioritarias em fila
-		printf("\nCliente colocado por prioridade");
+		fprintf(fp,"\nCliente colocado por prioridade");
 		int filasprioridade[2]={0}; //# de clientes prioritarios nas filas prioritarias
 		for(i=0;i<2;i++){
 			for(j=0;j<maxClients;j++){
 				if(vendedoresFila[j][i+8]==NULL || vendedoresFila[j][i+8]->prioridade==0){
 					filasprioridade[i]=j;
-					printf("|%d",filasprioridade[i]);
+					fprintf(fp,"|%d",filasprioridade[i]);
 					break;
 				}
 			}
@@ -538,7 +564,7 @@ void processarEventoChegada(){
 			filaMin=filasprioridade[1];
 			fila=9;
 		}
-		//mover os clientes na fila para tr·s
+		//mover os clientes na fila para tr√°s
 		for(j=maxClients;j>filaMin;j--){
 			if(vendedoresFila[j][i]==NULL){
 				continue;
@@ -551,13 +577,13 @@ void processarEventoChegada(){
 	}
 	//caso cliente nao prioritario
 	else{ //escolher a fila com menos pessoas em fila e entre as que teem menos pessoas escolher fila nao prioritaria
-		printf("\nCLIENTE NAO PRIORITARIO");
+		fprintf(fp,"\nCLIENTE NAO PRIORITARIO");
 		int filas[10]={0};
 		for(i=0;i<10;i++){
 			for(j=0;j<maxClients;j++){
 				if(vendedoresFila[j][i]==NULL){
 					filas[i]=j;
-					printf("|%d",filas[i]);
+					fprintf(fp,"|%d",filas[i]);
 					break;
 				}
 			}
@@ -568,15 +594,15 @@ void processarEventoChegada(){
 			if(filas[i]<filaMin)
 				filaMin=filas[i];
 		}
-		printf("\n FILA MINIMA=%d",filaMin);
+		fprintf(fp,"\n FILA MINIMA=%d",filaMin);
 		
 		//Escolher fila nao prioritaria preferencialmente
 		for(i = 0;i<10;i++){
 			if(filas[i]==filaMin){
 				cliente->tempoComeco=relogio;
 				vendedoresFila[filaMin][i]=cliente;
-				printf("\n FILA ESCOLHIDA = %d",i);
-				printf("\nCLIENTE GERADO PRIORIDADE: %d     TEMPOCOMECO: %d",vendedoresFila[filaMin][i]->prioridade,vendedoresFila[filaMin][i]->tempoComeco);
+				fprintf(fp,"\n FILA ESCOLHIDA = %d",i);
+				fprintf(fp,"\nCLIENTE GERADO PRIORIDADE: %d     TEMPOCOMECO: %d",vendedoresFila[filaMin][i]->prioridade,vendedoresFila[filaMin][i]->tempoComeco);
 				break;
 			}
 		}
@@ -588,11 +614,11 @@ void processarEventoSaidaPagamento(){
 	int posto=evento->posto;
 	int prob= rand() % 101;
 	
-	//clientes retornados v„o embora
+	//clientes retornados v√£o embora
 	if(pagamentoPostos[posto]->prioridade==1){
 		//vamos buscar o proximo cliente em fila geramos o seu evento e movemos a fila
 		//Fila de pagamento vazia
-		printf("\nCLIENTE FOI EMBORA DEVIDO A SER RETORNADO\n");
+		fprintf(fp,"\nCLIENTE FOI EMBORA DEVIDO A SER RETORNADO\n");
 		int flag=0;
 		if(pagamentoFila[0]==NULL){
 			pagamentoPostos[posto]=NULL;
@@ -638,7 +664,7 @@ void processarEventoSaidaPagamento(){
 		    for(i=1; i< maxClients; i++){
 				pagamentoFila[i-1]= pagamentoFila[i];
 				if(pagamentoFila[i]==NULL){
-					pagamentoFila[i-1]=NULL; //fazemos null a ultima posiÁ„o pois trata-se de um cliente duplicado
+					pagamentoFila[i-1]=NULL; //fazemos null a ultima posi√ß√£o pois trata-se de um cliente duplicado
 					break;
 				}	
 			}
@@ -647,7 +673,7 @@ void processarEventoSaidaPagamento(){
 	}
 	// Clientes que levantam
 	if(prob<61){
-		printf("\n CLIENTE DECIDIU IR AO LEVANTAMENTO");
+		fprintf(fp,"\n CLIENTE DECIDIU IR AO LEVANTAMENTO");
 		int flag=0;
 		for(i=0;i<2;i++){
 		//Ocupar posto, se existir
@@ -658,9 +684,9 @@ void processarEventoSaidaPagamento(){
 				break;
 			}
     	}
-    	//caso n„o exista posto livre ocupar fila
+    	//caso n√£o exista posto livre ocupar fila
     	if(flag==0){
-	    	printf("\nCLIENTE COLOCADO EM FILA");
+	    	fprintf(fp,"\nCLIENTE COLOCADO EM FILA");
 	    	//caso prioritario
 	    	if(pagamentoPostos[posto]->prioridade==2){
 	    		//selecionar o lugar correcto
@@ -676,8 +702,8 @@ void processarEventoSaidaPagamento(){
 	    			}
 	    		}
 	    		int j;
-	    		printf(" POR PRIORIDADE NO LUGAR %d",i+1);
-	    		//mover os clientes na fila para tr·s
+	    		fprintf(fp," POR PRIORIDADE NO LUGAR %d",i+1);
+	    		//mover os clientes na fila para tr√°s
 				for(j=maxClients-1;j>=lugar;j--){
 					if(levantamentoFila[j]==NULL){
 						continue;
@@ -690,7 +716,7 @@ void processarEventoSaidaPagamento(){
 	    	else{
 	    	//caso nao prioritario
 		    	int i;
-		    	printf(" SEM PRIORIDADE");
+		    	fprintf(fp," SEM PRIORIDADE");
 		    	for(i=0;i<maxClients;i++){
 		    		if(levantamentoFila[i]==NULL && flag == 0){
 		    			//inicializar o novo tempo
@@ -751,7 +777,7 @@ void processarEventoSaidaPagamento(){
 	    for(i=1; i< maxClients; i++){
 			pagamentoFila[i-1]= pagamentoFila[i];
 			if(pagamentoFila[i]==NULL){
-				pagamentoFila[i-1]=NULL; //fazemos null a ultima posiÁ„o pois trata-se de um cliente duplicado
+				pagamentoFila[i-1]=NULL; //fazemos null a ultima posi√ß√£o pois trata-se de um cliente duplicado
 				break;
 			}	
 		}
@@ -759,16 +785,16 @@ void processarEventoSaidaPagamento(){
 }
 
 void setup(){
-	//geraÁ„o do n˙mero de clientes de minClients-maxClients
+	//geracao do numero de clientes de minClients-maxClients
 	int numberOfClients=minClients + rand() % (maxClients-minClients);
 	int clientsLeft = numberOfClients;
-	printf("%d # de clientes", numberOfClients);
+	//fprintf(fp,"%d # de clientes", numberOfClients);
 	cli=numberOfClients;
 	if(percentagem1+percentagem2+percentagem3 >100){
-		printf("\nPercentagens invalidas");
+		//printf("\nPercentagens invalidas");
 		return;
 	}
-	//clientes por perÌodo de tempo
+	//clientes por per√≠odo de tempo
 	int clientesTempo1 = numberOfClients*((float)percentagem1/(float)100.0); //10-13h
 	clientesZonaTempo[0]= clientesTempo1;
 	clientsLeft-= clientesTempo1;
@@ -781,15 +807,15 @@ void setup(){
  	int clientesTempo4 = clientsLeft;                  						 //19-22h
  	clientesZonaTempo[3]= clientesTempo4;
  	
- 	printf("\n%d , %d , %d , %d total: %d\n", clientesTempo1, clientesTempo2, clientesTempo3, clientesTempo4,
-	  clientesTempo1+clientesTempo2+clientesTempo3+clientesTempo4);
+ 	//printf("\n%d , %d , %d , %d total: %d\n", clientesTempo1, clientesTempo2, clientesTempo3, clientesTempo4,
+	  //clientesTempo1+clientesTempo2+clientesTempo3+clientesTempo4);
 	
 	//gerar os eventos de chegada de clientes
 	int temp;
 	for(temp=1 ; temp < 4; temp++){
 		int tempo = 10800*temp;
 		makeEvent( 4, tempo, -1);
-		printf("%d", temp);
+		//fprintf(fp,"%d", temp);
 	}
 	for(temp=0 ; temp < clientesTempo1; temp++){
 		int tempo = rand() % 10800 + 0;
@@ -804,11 +830,11 @@ void setup(){
 		makeEvent( 0, tempo, -1);
 	}
 	for(temp=0 ; temp < clientesTempo4; temp++){
-		int tempo = rand() % 10800 + 43200;
+		int tempo = rand() % 10800 + 32400;
 		makeEvent( 0, tempo, -1);
 	}
 	
-	printf("\n\n\n");
+	//fprintf(fp,"\n\n\n");
 }
 
 //Criar Evento 
@@ -893,122 +919,136 @@ void imprimeLista(){
 
 
 	Evento *aux=evento;
-	printf("\nLista de eventos:");
+	fprintf(fp,"\nLista de eventos:");
 	if(aux==NULL)
-		printf("Vazio");
+		fprintf(fp,"Vazio");
 		while(aux!=NULL){
-			printf("%d,%d,%d-> ",aux->tipo,aux->tempoOcorrencia,aux->posto);
+			fprintf(fp,"%d,%d,%d-> ",aux->tipo,aux->tempoOcorrencia,aux->posto);
 			aux=aux->nseg;
 		}
-	printf("\n");
+	fprintf(fp,"\n");
 }
 
 void imprimeFilaLevantamento(){
 	int i;
-	printf("\n\nFila de Levantamento\n");
-	printf("Postos: ");
+	fprintf(fp,"\n\nFila de Levantamento\n");
+	fprintf(fp,"Postos: ");
 	for(i=0;i<2;i++){
 		if((levantamentoPostos[i]!=NULL)){
 			if(levantamentoPostos[i]->prioridade==2)
-				printf(" P |");
+				fprintf(fp," P |");
 			if(levantamentoPostos[i]->prioridade==1)
-				printf(" R |");
+				fprintf(fp," R |");
 			if(levantamentoPostos[i]->prioridade==0)
-				printf(" G |");
+				fprintf(fp," G |");
 		}
 		else
-			printf(" 0 |");
+			fprintf(fp," 0 |");
 	}
-	printf("\nFilas :");
+	fprintf(fp,"\nFilas :");
 	for(i = 0; i< maxClients ;i++){
 		if(levantamentoFila[i]!=NULL){
 			if(levantamentoFila[i]->prioridade==2)
-				printf(" P |");
+				fprintf(fp," P |");
 			if(levantamentoFila[i]->prioridade==1)
-				printf(" R |");
+				fprintf(fp," R |");
 			if(levantamentoFila[i]->prioridade==0)
-				printf(" G |");
+				fprintf(fp," G |");
 		}
 		else break;
 			
 	}
-	printf("\n");
+	fprintf(fp,"\n");
 }
 
 void imprimeFilaPagamento(){
 	int i;
-	printf("\n\nFila de pagamento\n");
-	printf("Postos: ");
+	fprintf(fp,"\n\nFila de pagamento\n");
+	fprintf(fp,"Postos: ");
 	for(i=0;i<4;i++){
 		if((pagamentoPostos[i]!=NULL)){
 			if(pagamentoPostos[i]->prioridade==2)
-				printf(" P |");
+				fprintf(fp," P |");
 			if(pagamentoPostos[i]->prioridade==1)
-				printf(" R |");
+				fprintf(fp," R |");
 			if(pagamentoPostos[i]->prioridade==0)
-				printf(" G |");
+				fprintf(fp," G |");
 		}
 		else
-			printf(" 0 |");
+			fprintf(fp," 0 |");
 	}
-	printf("\nFilas :");
+	fprintf(fp,"\nFilas :");
 	for(i = 0; i< maxClients ;i++){
 		if(pagamentoFila[i]!=NULL){
 			if(pagamentoFila[i]->prioridade==0)
-				printf("|G|");
+				fprintf(fp,"|G|");
 			if(pagamentoFila[i]->prioridade==2)
-				printf("|P|");
+				fprintf(fp,"|P|");
 			if(pagamentoFila[i]->prioridade==1)
-				printf("|R|");
+				fprintf(fp,"|R|");
 		}
 		else break;
 	}
-	printf("\n");
+	fprintf(fp,"\n");
 }
 void imprimeFilaVendedores(){
 	int i,j;
 	int finish=0;
-	printf("\n\nFila de vendedores\n");
-	printf("Postos|");
+	fprintf(fp,"\n\nFila de vendedores\n");
+	fprintf(fp,"Postos|");
 	for(i=0;i<10;i++){
 		if(vendedoresPostos[i]==NULL)
-			printf("|0|");
+			fprintf(fp,"|0|");
 		else{
 			if(vendedoresPostos[i]->prioridade==0)
-				printf("|G|");
+				fprintf(fp,"|G|");
 			if(vendedoresPostos[i]->prioridade==2)
-				printf("|P|");
+				fprintf(fp,"|P|");
 		}
 	}
-	printf("\nFILAS |");
+	fprintf(fp,"\nFILAS |");
 	for(j=0;j<maxClients;j++){
 		for(i=0;i<10;i++){
 			if(vendedoresFila[j][i]==NULL){
-				printf("|0|");
+				fprintf(fp,"|0|");
 				finish++;
 			}
 			else{
 				if(vendedoresFila[j][i]->prioridade==0){
 					finish=0;
-					printf("|G|");
+					fprintf(fp,"|G|");
 					
 				}
 				if(vendedoresFila[j][i]->prioridade==2){
 					finish=0;
-					printf("|P|");
+					fprintf(fp,"|P|");
 					
 				}
 			}
 		}
 		if(finish<20)
-		printf("\n      |");
+		fprintf(fp,"\n      |");
 		else return;
 	}
-	printf("\n");
+	fprintf(fp,"\n");
 }
 	
-	
+int* bubble_sort(int *a, int n) {
+   int i = 0, j = 0, tmp;
+   for (i = 0; i < n; i++) {   
+       for (j = 0; j < n - i - 1; j++) {           
+            if (a[j] > a[j + 1]) {  
+               tmp = a[j];
+               a[j] = a[j + 1];
+               a[j + 1] = tmp;
+           }
+       }
+       
+   }
 
-	
+ return a;
+}
+
+
 
 
